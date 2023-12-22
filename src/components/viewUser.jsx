@@ -135,7 +135,7 @@ const ViewUser = () => {
         </Form.Item>
       </Form>
 
-      <Table dataSource={dataSource} columns={columns} pagination={false} />
+      <Table dataSource={dataSource} columns={columns} pagination={false} className='overflow-x-auto'/>
 
       <div style={{ marginTop: '16px', textAlign: 'right' }}>
         <span>{dataSource.length} USERS</span>

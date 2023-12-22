@@ -13,7 +13,7 @@ import {
 } from "@ant-design/icons";
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
-
+import Login from './components/login'
 import NavBar from "./components/NavBar";
 import SideBar from "./components/sidebar";
 import DashBoard from "./components/dashboard";
@@ -32,6 +32,7 @@ const { Header, Sider, Content } = Layout;
 type MenuItem = Required<MenuProps>['items'][number];
 function App() {
   const [collapsed, setCollapsed] = useState(false);
+  const [isHide, setIsHide] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG }
   } = theme.useToken();
@@ -77,110 +78,120 @@ function App() {
   return (
     <Router>
       <Layout>
-        <Sider trigger={null} collapsible collapsed={collapsed}>
-          <div className="demo-logo-vertical" />
-          <div style={{ padding: '16px', textAlign: 'center', background: '#001529' }}>
-            <span className="text-3xl" style={{ color: 'white', fontWeight: 'bold' }}>FIS</span>
-          </div>
-          <Menu theme="dark" mode="inline" defaultSelectedKeys={["1"]} >
-              <Menu.Item key="1" icon={<PieChartOutlined />}>
-                <Link to="/dashboard">DASHBOARD</Link>
-              </Menu.Item>
-              <Menu.Item key="2" icon={<FileOutlined />}>
-                <Link to="/report">REPORTS</Link>
-              </Menu.Item>
-              <Menu.SubMenu key="sub1" icon={<TagOutlined />} title="PRODUCT">
-                <Menu.Item key="4">
-                  <Link to="/view-product">View Product</Link>
+        {isHide ?
+          <div></div>
+          :
+          <>
+            <Sider trigger={null} collapsible collapsed={collapsed}>
+              <div className="demo-logo-vertical" />
+              <div style={{ padding: '16px', textAlign: 'center', background: '#001529' }}>
+                <span className="text-3xl" style={{ color: 'white', fontWeight: 'bold' }}>FIS</span>
+              </div>
+              <Menu theme="dark" mode="inline" defaultSelectedKeys={["1"]} >
+                <Menu.Item key="1" icon={<PieChartOutlined />}>
+                  <Link to="/dashboard">DASHBOARD</Link>
                 </Menu.Item>
-                <Menu.Item key="5">
-                  <Link to="/add-product">Add Product</Link>
+                <Menu.Item key="2" icon={<FileOutlined />}>
+                  <Link to="/report">REPORTS</Link>
                 </Menu.Item>
-              </Menu.SubMenu>
-              <Menu.SubMenu key="sub2" icon={<ShopOutlined />} title="SUPPLIER">
-                <Menu.Item key="6">
-                  <Link to="/view-supplier">View Supplier</Link>
-                </Menu.Item>
-                <Menu.Item key="7">
-                  <Link to="/add-supplier">Add Supplier</Link>
-                </Menu.Item>
-              </Menu.SubMenu>
-              <Menu.SubMenu key="sub3" icon={<ShoppingCartOutlined />} title="PURCHASE ORDER">
-                <Menu.Item key="8">
-                  <Link to="/create-order">Create Order</Link>
-                </Menu.Item>
-                <Menu.Item key="9">
-                  <Link to="/view-safety-stock">View Safety Stock</Link>
-                </Menu.Item>
-                <Menu.Item key="10">
-                  <Link to="/view-orders">View Orders</Link>
-                </Menu.Item>
-              </Menu.SubMenu>
-              <Menu.SubMenu key="sub4" icon={<UserAddOutlined />} title="USER">
-                <Menu.Item key="11">
-                  <Link to="/view-user">View User</Link>
-                </Menu.Item>
-                <Menu.Item key="12">
-                  <Link to="/add-user">Add User</Link>
-                </Menu.Item>
-              </Menu.SubMenu>
-            </Menu>
-        </Sider>
-        <Layout>
-          <Header
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 16px",
-              background: colorBgContainer,
-            }}
-          >
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              style={{
-                fontSize: "16px",
-                width: 64,
-                height: 64,
-              }}
-            />
-            <Space>
-              {/* Add your user name or user-related content here */}
-              <span className="text-xl mr-10" style={{ color: "black" }}>User Name</span>
-            </Space>
-          </Header>
-          <Content
-            className="h-screen"
-            style={{
-              margin: "24px 16px",
-              padding: 24,
-              minHeight: 280,
-              background: colorBgContainer,
-              borderRadius: borderRadiusLG
-            }}
-          >
-           <Routes>
-              {items.map((item) => (
-                <Route
-                  key={item.key}
-                  path={item.to}
-                  element={item.component ? <item.component /> : null}
+                <Menu.SubMenu key="sub1" icon={<TagOutlined />} title="PRODUCT">
+                  <Menu.Item key="4">
+                    <Link to="/view-product">View Product</Link>
+                  </Menu.Item>
+                  <Menu.Item key="5">
+                    <Link to="/add-product">Add Product</Link>
+                  </Menu.Item>
+                </Menu.SubMenu>
+                <Menu.SubMenu key="sub2" icon={<ShopOutlined />} title="SUPPLIER">
+                  <Menu.Item key="6">
+                    <Link to="/view-supplier">View Supplier</Link>
+                  </Menu.Item>
+                  <Menu.Item key="7">
+                    <Link to="/add-supplier">Add Supplier</Link>
+                  </Menu.Item>
+                </Menu.SubMenu>
+                <Menu.SubMenu key="sub3" icon={<ShoppingCartOutlined />} title="PURCHASE ORDER">
+                  <Menu.Item key="8">
+                    <Link to="/create-order">Create Order</Link>
+                  </Menu.Item>
+                  <Menu.Item key="9">
+                    <Link to="/view-safety-stock">View Safety Stock</Link>
+                  </Menu.Item>
+                  <Menu.Item key="10">
+                    <Link to="/view-orders">View Orders</Link>
+                  </Menu.Item>
+                </Menu.SubMenu>
+                <Menu.SubMenu key="sub4" icon={<UserAddOutlined />} title="USER">
+                  <Menu.Item key="11">
+                    <Link to="/view-user">View User</Link>
+                  </Menu.Item>
+                  <Menu.Item key="12">
+                    <Link to="/add-user">Add User</Link>
+                  </Menu.Item>
+                </Menu.SubMenu>
+              </Menu>
+            </Sider>
+
+            <Layout>
+              <Header
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0 16px",
+                  background: colorBgContainer,
+                }}
+              >
+                <Button
+                  type="text"
+                  icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                  onClick={() => setCollapsed(!collapsed)}
+                  style={{
+                    fontSize: "16px",
+                    width: 64,
+                    height: 64,
+                  }}
                 />
-              ))}
-              {items.map((item) =>
-                item.children?.map((subItem) => (
-                  <Route
-                    key={subItem.key}
-                    path={subItem.to}
-                    element={subItem.component ? <subItem.component /> : null}
-                  />
-                ))
-              )}
-            </Routes>
-          </Content>
-        </Layout>
+                <Space>
+                  {/* Add your user name or user-related content here */}
+                  <span className="text-xl mr-10" style={{ color: "black" }}>User Name</span>
+                </Space>
+              </Header>
+              <Content
+                className="h-screen"
+                style={{
+                  margin: "24px 16px",
+                  padding: 24,
+                  minHeight: 280,
+                  background: colorBgContainer,
+                  borderRadius: borderRadiusLG
+                }}
+              >
+                <Routes>
+                  {items.map((item) => (
+                    <Route
+                      key={item.key}
+                      path={item.to}
+                      element={item.component ? <item.component /> : null}
+                    />
+                  ))}
+                  {items.map((item) =>
+                    item.children?.map((subItem) => (
+                      <Route
+                        key={subItem.key}
+                        path={subItem.to}
+                        element={subItem.component ? <subItem.component /> : null}
+                      />
+                    ))
+                  )}
+                </Routes>
+              </Content>
+            </Layout>
+          </>
+        }
+        <Routes>
+          <Route path="/login" element={<Login setIsHide={setIsHide} />} />
+        </Routes>
       </Layout>
     </Router>
   );

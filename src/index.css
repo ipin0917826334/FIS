@@ -68,12 +68,12 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
-}
+} */
 .login-form {
   border: 1px solid;
   padding: 100px;
 }
-.main-content {
+/* .main-content {
   width: 133.9%;
 }
 .navbar {

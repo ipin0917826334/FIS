@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Button, Checkbox } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
-const Login = () => {
+const Login = ({setIsHide}) => {
   const navigate = useNavigate();
   const onFinish = values => {
     console.log('Received values of form: ', values);
     navigate(`/dashboard`);
   };
+  useEffect(() => {
+   setIsHide(true);
+  }, []);
   return (
     <>
    <div
@@ -21,7 +24,7 @@ const Login = () => {
     >
       <h1 className='text-9xl'>FIS</h1>
       <h1 className='text-5xl mb-10'>Fruit Inventory System</h1>
-      <div className='login-form rounded-md bg-white bg-opacity-60'>
+      <div className='p-10 rounded-md bg-white bg-opacity-60'>
 <Form
       name="normal_login"
       className=""
@@ -66,8 +69,8 @@ const Login = () => {
         </Form.Item>
       </Form.Item>
 
-      <Form.Item>
-        <Button type="primary" htmlType="submit" ghost className="login-form-button bg-blue">
+      <Form.Item className='flex justify-center items-center'>
+        <Button type="primary" htmlType="submit" ghost className="login-form-button bg-blue ">
           Log in
         </Button>
       </Form.Item>
