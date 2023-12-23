@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Button, theme, Space, Dropdown, Modal } from "antd";
+import { Layout, Menu, Button, theme, Space, Dropdown, Modal, ConfigProvider, } from "antd";
 import {
   FileOutlined,
   TagOutlined,
@@ -59,22 +59,22 @@ function App() {
       children,
     } as MenuItem;
   }
-  useEffect(() => {
-    const token = localStorage.getItem("token");
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
   
-    if (!token) {
-      // If there is no token, navigate to the login page
-      Modal.error({
-        title: "Session timeout",
-        content: "You need to log in to access this page.",
-        onOk: () => navigate("/login"),
-      });
-      navigate("/login");
-    } else {
-      // If there is a token, fetch user details using the stored token
-      fetchUserDetails(token);
-    }
-  }, [navigate]);
+  //   if (!token) {
+  //     // If there is no token, navigate to the login page
+  //     Modal.error({
+  //       title: "Session timeout",
+  //       content: "You need to log in to access this page.",
+  //       onOk: () => navigate("/login"),
+  //     });
+  //     navigate("/login");
+  //   } else {
+  //     // If there is a token, fetch user details using the stored token
+  //     fetchUserDetails(token);
+  //   }
+  // }, [navigate]);
   
   const items: MenuItem[] = [
     getItem("DASHBOARD", "1", <PieChartOutlined />, "/dashboard", DashBoard),
@@ -139,11 +139,23 @@ function App() {
           element={
             <Layout>
               {!isHide && (
+                 <ConfigProvider
+                 theme={{
+                   token: {
+                     // Seed Token
+                     colorPrimary: '#88ab8d',
+             
+                     // Alias Token
+                     colorBgContainer: '#afc7ad',
+                   },
+                 }}
+               >
                 <Sider trigger={null} collapsible collapsed={collapsed}>
                   <div className="demo-logo-vertical" />
                   <div style={{ padding: '16px', textAlign: 'center', background: '#001529' }}>
                     <span className="text-3xl" style={{ color: 'white', fontWeight: 'bold' }}>FIS</span>
                   </div>
+                  
                   <Menu theme="dark" mode="inline" defaultSelectedKeys={["1"]}>
                   <Menu.Item key="1" icon={<PieChartOutlined />}>
                   <Link to="/dashboard">DASHBOARD</Link>
@@ -188,15 +200,27 @@ function App() {
                 </Menu.SubMenu>
                   </Menu>
                 </Sider>
+                </ConfigProvider>
               )}
               <Layout>
+              <ConfigProvider
+                 theme={{
+                   token: {
+                     // Seed Token
+                     colorPrimary: '#88AB8D',
+             
+                     // Alias Token
+                     colorBgContainer: '#88AB8D',
+                   },
+                 }}
+               >
                 <Header
                   style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
                     padding: "0 16px",
-                    background: colorBgContainer,
+                    background: '#88aa8f',
                   }}
                 >
                   <Button
@@ -221,13 +245,14 @@ function App() {
                       }
                       placement="bottomRight"
                     >
-                      <span className="text-xl mr-10" style={{ color: "black", cursor: "pointer" }}>
+                      <span className="text-xl mr-10 text-white" style={{ color: "white", cursor: "pointer" }}>
                         {`${userDetails.first_name} ${userDetails.last_name}`}
                       </span>
                     </Dropdown>
                   )}
                 </Space>
                 </Header>
+                </ConfigProvider>
                 <Content
                   className="h-screen"
                   style={{

@@ -92,7 +92,7 @@ const SideBar = ({ menu }) => {
     <Layout.Sider
       className="sidebar absolute"
       breakpoint={"lg"}
-      theme="dark"
+      theme="light"
       collapsedWidth={0}
       trigger={null}
     >
