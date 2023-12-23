@@ -59,22 +59,22 @@ function App() {
       children,
     } as MenuItem;
   }
-  // useEffect(() => {
-  //   const token = localStorage.getItem("token");
+  useEffect(() => {
+    const token = localStorage.getItem("token");
   
-  //   if (!token) {
-  //     // If there is no token, navigate to the login page
-  //     Modal.error({
-  //       title: "Session timeout",
-  //       content: "You need to log in to access this page.",
-  //       onOk: () => navigate("/login"),
-  //     });
-  //     navigate("/login");
-  //   } else {
-  //     // If there is a token, fetch user details using the stored token
-  //     fetchUserDetails(token);
-  //   }
-  // }, [navigate]);
+    if (!token) {
+      // If there is no token, navigate to the login page
+      Modal.error({
+        title: "Session timeout",
+        content: "You need to log in to access this page.",
+        onOk: () => navigate("/login"),
+      });
+      navigate("/login");
+    } else {
+      // If there is a token, fetch user details using the stored token
+      fetchUserDetails(token);
+    }
+  }, [navigate]);
   
   const items: MenuItem[] = [
     getItem("DASHBOARD", "1", <PieChartOutlined />, "/dashboard", DashBoard),
@@ -277,7 +277,7 @@ function App() {
                         <Route
                           key={subItem.key}
                           path={subItem.to}
-                          element={subItem.component ? <subItem.component /> : null}
+                          element={subItem.component ? <subItem.component userDetails={userDetails} /> : null}
                         />
                       ))
                     )}

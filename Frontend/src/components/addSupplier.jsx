@@ -1,10 +1,33 @@
-import React from 'react';
-import { Form, Input, Button } from 'antd';
+import React ,{useState} from 'react';
+import { Form, Input, Button,  Modal } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 
-const AddSupplier = () => {
-  const onFinish = values => {
-    console.log('Received values of form: ', values);
+const AddSupplier = ({ userDetails }) => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const onFinish = async (values) => {
+    try {
+      const createdBy = userDetails.first_name +" "+  userDetails.last_name;
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/add-supplier', {
+        method: 'POST',
+        headers: {
+          Authorization: token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ...values, createdBy }),
+      });
+
+      if (response.ok) {
+        console.log('Add Supplier successfully');
+        setIsModalVisible(true);
+        // Optionally, you can redirect the user to another page or show a success message.
+      } else {
+        console.error('Add Supplier failed');
+        // Handle registration failure (show an error message, etc.).
+      }
+    } catch (error) {
+      console.error('Error during add supplier:', error);
+    }
   };
 
   return (
@@ -22,7 +45,7 @@ const AddSupplier = () => {
           name="supplier_name"
           rules={[{ required: true, message: 'Please enter Supplier name!' }]}
         >
-          <Input prefix={<UserOutlined />} placeholder="Supplier Name" />
+          <Input placeholder="Supplier Name" />
         </Form.Item>
 
         <Form.Item
@@ -30,7 +53,7 @@ const AddSupplier = () => {
           name="location"
           rules={[{ required: true, message: 'Please enter Supplier location!' }]}
         >
-          <Input prefix={<UserOutlined />} placeholder="Supplier Location" />
+          <Input placeholder="Supplier Location" />
         </Form.Item>
 
         <Form.Item
@@ -52,6 +75,14 @@ const AddSupplier = () => {
           </div>
         </Form.Item>
       </Form>
+      <Modal
+        title="User Added Successfully"
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null} 
+      >
+        <p>The user has been added successfully!</p>
+      </Modal>
     </div>
   );
 };

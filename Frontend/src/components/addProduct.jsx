@@ -1,23 +1,164 @@
-import React from 'react';
-import { useNavigate } from "react-router-dom";
-import { Form, Input, Button, Checkbox } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
-// import SideBar from './sidebar';
+import React, { useState, useEffect } from 'react';
+import { Form, Input, Button, Modal, Select, Upload, message } from 'antd';
+import { UserOutlined, UploadOutlined } from '@ant-design/icons';
 
-const AddProduct = () => {
-  const onFinish = values => {
-    console.log('Received values of form: ', values);
+const { Option } = Select;
+
+const AddProduct = ({ userDetails }) => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [supplierOptions, setSupplierOptions] = useState([]);
+
+  useEffect(() => {
+    // Fetch suppliers data from the server and update the state
+    const fetchSuppliers = async () => {
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5000/api/all-suppliers', {
+          method: 'GET',
+          headers: {
+            Authorization: token,
+          },
+        });
+        if (response.ok) {
+          const suppliers = await response.json();
+          setSupplierOptions(suppliers.map((supplier) => ({ value: supplier.supplier_name, label: supplier.supplier_name })));
+        } else {
+          console.error('Failed to fetch suppliers');
+        }
+      } catch (error) {
+        console.error('Error fetching suppliers:', error);
+      }
+    };
+
+    fetchSuppliers();
+  }, []);
+
+  const onFinish = async (values) => {
+    try {
+      const token = localStorage.getItem('token');
+      const createdBy = userDetails.first_name +" "+ userDetails.last_name;
+  
+      const formData = new FormData();
+      formData.append('product_name', values.product_name);
+      formData.append('description', values.description);
+      formData.append('supplier', values.supplier);
+      formData.append('product_stock', values.product_stock);
+      formData.append('createdBy', createdBy);
+      formData.append('product_image', values.product_image[0].originFileObj);
+  
+      const response = await fetch('http://localhost:5000/api/add-product', {
+        method: 'POST',
+        headers: {
+          Authorization: token,
+        },
+        body: formData,
+      });
+  
+      if (response.ok) {
+        console.log('Add Product successfully');
+        setIsModalVisible(true);
+      } else {
+        console.error('Add Product failed');
+      }
+    } catch (error) {
+      console.error('Error during add product:', error);
+    }
   };
+  
 
+  const handleFileUpload = (file) => {
+    console.log('Uploaded file:', file);
+    message.success(`${file.name} file uploaded successfully`);
+  };
+ const validateProductImage = (_, fileList) => {
+    if (fileList.length === 0) {
+      return Promise.reject('Please upload a product image');
+    } else {
+      return Promise.resolve();
+    }
+  };
   return (
-    <>
-      <div className="flex items-center justify-center bg-emerald-500 w-screen">
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h1 className="text-2xl font-bold mb-4">AP</h1>
-          <p className="text-gray-600">Your paragraph goes here. Add any content you want.</p>
-        </div>
-      </div>
-    </>
+    <div>
+      <h1 className="text-2xl font-bold mb-4 pt-10">Create Product</h1>
+      <Form
+        name="register"
+        onFinish={onFinish}
+        encType="multipart/form-data"
+        scrollToFirstError
+        className="mt-10"
+        labelCol={{ span: 24 }}
+      >
+        <Form.Item
+          label="Product Name"
+          name="product_name"
+          rules={[{ required: true, message: 'Please enter Product name!' }]}
+        >
+          <Input placeholder="Product Name" />
+        </Form.Item>
+
+        <Form.Item
+          label="Description"
+          name="description"
+          rules={[{ required: true, message: 'Please enter description!' }]}
+        >
+          <Input placeholder="Description" />
+        </Form.Item>
+
+        <Form.Item
+          label="Supplier"
+          name="supplier"
+          rules={[{ required: true, message: 'Please select a supplier!' }]}
+        >
+          <Select placeholder="Select Supplier" options={supplierOptions} />
+        </Form.Item>
+        <Form.Item
+          label="Product Stock"
+          name="product_stock"
+          rules={[{ required: true, message: 'Please enter Product Stock!' }]}
+        >
+          <Input type="number" placeholder="Product Stock" />
+        </Form.Item>
+
+        <Form.Item
+          label="Product Image"
+          name="product_image"
+          valuePropName="fileList"
+          getValueFromEvent={(e) => e && e.fileList}
+          rules={[
+            {
+              validator: validateProductImage,
+            },
+          ]}
+        >
+          <Upload
+            name="product_image"
+            action="http://localhost:5000/api/add-product"
+            listType="picture"
+            beforeUpload={() => false} // Prevent automatic upload
+            onChange={(info) => handleFileUpload(info.file)}
+          >
+            <Button icon={<UploadOutlined />}>Click to Upload</Button>
+          </Upload>
+        </Form.Item>
+
+        <Form.Item>
+          <div className="flex justify-center items-center">
+            <Button type="primary" ghost htmlType="submit">
+              Create Product
+            </Button>
+          </div>
+        </Form.Item>
+      </Form>
+      <Modal
+        title="Product Added Successfully"
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+      >
+        <p>The product has been added successfully!</p>
+      </Modal>
+    </div>
   );
 };
 
