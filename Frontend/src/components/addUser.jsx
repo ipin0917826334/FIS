@@ -1,12 +1,31 @@
-import React from 'react';
-import { Form, Input, Button } from 'antd';
+import React ,{useState} from 'react';
+import { Form, Input, Button,  Modal } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 
 const AddUser = () => {
-  const onFinish = values => {
-    console.log('Received values of form: ', values);
-  };
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const onFinish = async (values) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
 
+      if (response.ok) {
+        console.log('User registered successfully');
+        setIsModalVisible(true);
+        // Optionally, you can redirect the user to another page or show a success message.
+      } else {
+        console.error('User registration failed');
+        // Handle registration failure (show an error message, etc.).
+      }
+    } catch (error) {
+      console.error('Error during user registration:', error);
+    }
+  };
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4 pt-10">Create User</h1>
@@ -63,6 +82,14 @@ const AddUser = () => {
           </div>
         </Form.Item>
       </Form>
+      <Modal
+        title="User Added Successfully"
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null} 
+      >
+        <p>The user has been added successfully!</p>
+      </Modal>
     </div>
   );
 };

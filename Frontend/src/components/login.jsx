@@ -1,17 +1,54 @@
-import React, { useEffect } from 'react';
+import React, { useEffect , useState} from 'react';
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Button, Checkbox } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
-const Login = ({setIsHide}) => {
+const Login = ({setUserDetails}) => {
   const navigate = useNavigate();
-  const onFinish = values => {
-    console.log('Received values of form: ', values);
-    navigate(`/dashboard`);
+  const [loading, setLoading] = useState(false);
+  const onFinish = async (values) => {
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        console.log(data.token)
+        // Fetch user details after successful login
+        const userDetailsResponse = await fetch('http://localhost:5000/api/user-details', {
+          method: 'GET',
+          headers: {
+            Authorization: `${data.token}`,
+          },
+        });
+
+        if (userDetailsResponse.ok) {
+          const userDetails = await userDetailsResponse.json();
+          setUserDetails(userDetails);
+          navigate('/dashboard');
+        } else {
+          console.error('Failed to fetch user details');
+        }
+      } else {
+        console.error('Login failed');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
+
+    setLoading(false);
   };
-  useEffect(() => {
-   setIsHide(true);
-  }, []);
+  // useEffect(() => {
+  //  setIsHide(true);
+  // }, []);
   return (
     <>
    <div
@@ -34,17 +71,17 @@ const Login = ({setIsHide}) => {
       onFinish={onFinish}
     >
       <Form.Item
-        name="username"
-        label="Username"
+        name="email"
+        label="Email"
         labelCol={{ span: 24 }}
         rules={[
           {
             required: true,
-            message: 'Please input your Username!',
+            message: 'Please input your email!',
           },
         ]}
       >
-        <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="Username" />
+        <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="Email" />
       </Form.Item>
       <Form.Item
         name="password"
