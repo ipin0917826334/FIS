@@ -6,7 +6,7 @@ const AddUser = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const onFinish = async (values) => {
     try {
-      const response = await fetch('https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/register', {
+      const response = await fetch('http://localhost:5000/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

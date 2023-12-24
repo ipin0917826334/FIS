@@ -10,7 +10,7 @@ const Login = ({setUserDetails}) => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/login', {
+      const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -23,7 +23,7 @@ const Login = ({setUserDetails}) => {
         localStorage.setItem('token', data.token);
         console.log(data.token)
         // Fetch user details after successful login
-        const userDetailsResponse = await fetch('https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/user-details', {
+        const userDetailsResponse = await fetch('http://localhost:5000/api/user-details', {
           method: 'GET',
           headers: {
             Authorization: `${data.token}`,

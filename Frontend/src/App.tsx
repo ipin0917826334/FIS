@@ -113,7 +113,7 @@ function App() {
   };
   const fetchUserDetails = async (token) => {
     try {
-      const response = await fetch("https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/user-details", {
+      const response = await fetch("http://localhost:5000/api/user-details", {
         method: "GET",
         headers: {
           Authorization: `${token}`,
