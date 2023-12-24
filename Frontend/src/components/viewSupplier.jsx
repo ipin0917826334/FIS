@@ -59,7 +59,7 @@ const ViewSupplier = () => {
   const fetchProductNames = async (supplierName) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:5000/api/products-by-supplier/${encodeURIComponent(supplierName)}`, {
+    const response = await fetch(`https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/products-by-supplier/${encodeURIComponent(supplierName)}`, {
       method: 'GET',
       headers: {
         Authorization: token,
@@ -85,7 +85,7 @@ useEffect(() => {
     try {
       const token = localStorage.getItem('token');
       console.log(token)
-      const response = await fetch('http://localhost:5000/api/all-suppliers', {
+      const response = await fetch('https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/all-suppliers', {
         method: 'GET',
         headers: {
           Authorization: token,
@@ -190,7 +190,7 @@ const onFinish = values => {
       }
   
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/update-supplier/${id}`, {
+      const response = await fetch(`https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/update-supplier/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -232,7 +232,7 @@ const handleCancelEdit = () => {
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/delete-supplier/${id}`, {
+      const response = await fetch(`https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/delete-supplier/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: token,

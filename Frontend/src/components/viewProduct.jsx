@@ -15,7 +15,7 @@ const ViewProduct = () => {
   const [editedValues, setEditedValues] = useState({});
   const columns = [
     { title: '#', dataIndex: 'id', key: 'id'},
-    { title: 'Image', dataIndex: 'product_image', key: 'product_image', render: (text, record) => <img src={`http://localhost:5000/uploads/${text}`} alt={record.product_name} className='rounded-md' style={{ width: '50%', height: 'auto' }} /> },
+    { title: 'Image', dataIndex: 'product_image', key: 'product_image', render: (text, record) => <img src={`https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/uploads/${text}`} alt={record.product_name} className='rounded-md' style={{ width: '100px', height: 'auto' }} /> },
     { title: 'Product Name', dataIndex: 'product_name', key: 'product_name', render: (text, record) => renderEditableCell(text, record, 'product_name') },
     { title: 'Stock', dataIndex: 'product_stock', key: 'product_stock', render: (text, record) => renderEditableCell(text, record, 'product_stock') },
     { title: 'Description', dataIndex: 'description', key: 'description', render: (text, record) => renderEditableCell(text, record, 'description') },
@@ -56,7 +56,7 @@ useEffect(() => {
     try {
       const token = localStorage.getItem('token');
       console.log(token)
-      const response = await fetch('http://localhost:5000/api/all-products', {
+      const response = await fetch('https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/all-products', {
         method: 'GET',
         headers: {
           Authorization: token,
@@ -156,7 +156,7 @@ const onFinish = values => {
       }
   
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/update-product/${id}`, {
+      const response = await fetch(`https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/update-product/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -198,7 +198,7 @@ const handleCancelEdit = () => {
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/delete-product/${id}`, {
+      const response = await fetch(`https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/delete-product/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: token,

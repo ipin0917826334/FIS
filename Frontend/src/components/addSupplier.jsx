@@ -8,7 +8,7 @@ const AddSupplier = ({ userDetails }) => {
     try {
       const createdBy = userDetails.first_name +" "+  userDetails.last_name;
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/add-supplier', {
+      const response = await fetch('https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/add-supplier', {
         method: 'POST',
         headers: {
           Authorization: token,

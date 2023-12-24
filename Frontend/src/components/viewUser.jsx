@@ -51,7 +51,7 @@ useEffect(() => {
     try {
       const token = localStorage.getItem('token');
       console.log(token)
-      const response = await fetch('http://localhost:5000/api/all-users', {
+      const response = await fetch('https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/all-users', {
         method: 'GET',
         headers: {
           Authorization: token,
@@ -150,7 +150,7 @@ const onFinish = values => {
       }
   
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/update-user/${id}`, {
+      const response = await fetch(`https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/update-user/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -192,7 +192,7 @@ const handleCancelEdit = () => {
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/delete-user/${id}`, {
+      const response = await fetch(`https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/delete-user/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: token,

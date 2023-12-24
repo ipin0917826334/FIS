@@ -64,11 +64,11 @@ function App() {
   
     if (!token) {
       // If there is no token, navigate to the login page
-      Modal.error({
-        title: "Session timeout",
-        content: "You need to log in to access this page.",
-        onOk: () => navigate("/login"),
-      });
+      // Modal.error({
+      //   title: "Session timeout",
+      //   content: "You need to log in to access this page.",
+      //   onOk: () => navigate("/login"),
+      // });
       navigate("/login");
     } else {
       // If there is a token, fetch user details using the stored token
@@ -113,7 +113,7 @@ function App() {
   };
   const fetchUserDetails = async (token) => {
     try {
-      const response = await fetch("http://localhost:5000/api/user-details", {
+      const response = await fetch("https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/user-details", {
         method: "GET",
         headers: {
           Authorization: `${token}`,

@@ -1,6 +1,6 @@
 import React, { useEffect , useState} from 'react';
 import { useNavigate } from "react-router-dom";
-import { Form, Input, Button, Checkbox } from 'antd';
+import { Form, Input, Button, Checkbox,message   } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
 const Login = ({setUserDetails}) => {
@@ -10,7 +10,7 @@ const Login = ({setUserDetails}) => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch('https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -23,7 +23,7 @@ const Login = ({setUserDetails}) => {
         localStorage.setItem('token', data.token);
         console.log(data.token)
         // Fetch user details after successful login
-        const userDetailsResponse = await fetch('http://localhost:5000/api/user-details', {
+        const userDetailsResponse = await fetch('https://a889-2403-6200-88a4-ddca-51fd-a70b-28a2-d771.ngrok-free.app/api/user-details', {
           method: 'GET',
           headers: {
             Authorization: `${data.token}`,
@@ -35,13 +35,13 @@ const Login = ({setUserDetails}) => {
           setUserDetails(userDetails);
           navigate('/dashboard');
         } else {
-          console.error('Failed to fetch user details');
+          message.error('Failed to fetch user details');
         }
       } else {
-        console.error('Login failed');
+      message.error('Incorrect Email or Passowrd');
       }
     } catch (error) {
-      console.error('Login failed:', error);
+      message.error('Login failed');
     }
 
     setLoading(false);
@@ -49,6 +49,9 @@ const Login = ({setUserDetails}) => {
   // useEffect(() => {
   //  setIsHide(true);
   // }, []);
+  const onFinishFailed = (errorInfo) => {
+    console.error('Failed:', errorInfo);
+  };
   return (
     <>
    <div
@@ -69,6 +72,7 @@ const Login = ({setUserDetails}) => {
         remember: true,
       }}
       onFinish={onFinish}
+      onFinishFailed={onFinishFailed}
     >
       <Form.Item
         name="email"
