@@ -71,7 +71,6 @@ function App() {
       // });
       navigate("/login");
     } else {
-      // If there is a token, fetch user details using the stored token
       fetchUserDetails(token);
     }
   }, [navigate]);
@@ -101,15 +100,13 @@ function App() {
     const token = localStorage.getItem("token");
 
     if (token) {
-      // Fetch user details using the stored token
       fetchUserDetails(token);
     }
-  }, []); // Empty dependency array means this effect runs once on component mount
+  }, []); 
   const handleLogout = () => {
-    // Clear token and user details on logout
     localStorage.removeItem("token");
     setUserDetails(null);
-    navigate("/login"); // Navigate to the login page after logout
+    navigate("/login");
   };
   const fetchUserDetails = async (token) => {
     try {

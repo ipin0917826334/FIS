@@ -286,7 +286,7 @@ const handleCancelEdit = () => {
       <Table dataSource={dataSource} columns={columns} pagination={false} className='overflow-x-auto'/>
 
       <div style={{ marginTop: '16px', textAlign: 'right' }}>
-        <span>{dataSource.length} PRODUCTS</span>
+        <span>{dataSource.length} SUPPLIER</span>
       </div>
 
       <Pagination

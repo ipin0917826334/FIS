@@ -121,7 +121,6 @@ const onFinish = values => {
       item.email.toLowerCase().includes(search.toLowerCase())
   );
   
-  // Update the state with the filtered data
   setDataSource(filteredData);
 };
 
@@ -143,7 +142,6 @@ const onFinish = values => {
     try {
       const updatedData = editedValues[id];
       if (!updatedData) {
-        // No changes were made, so simply exit the function
         setEditKey(null);
         setEditedValues({}); // Reset editedValues state
         return;
@@ -160,7 +158,6 @@ const onFinish = values => {
       });
   
       if (response.ok) {
-        // Successful update, display a success message if needed
         message.success('User updated successfully');
         const updatedDataSource = dataSource.map((item) =>
           item.id === id ? { ...item, ...updatedData } : item
@@ -184,7 +181,6 @@ const onFinish = values => {
   
 
 const handleCancelEdit = () => {
-  // Reset edit key without saving
   setEditKey(null);
   setEditedValues({}); // Reset editedValues state
 };

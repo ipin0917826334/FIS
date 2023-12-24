@@ -21,10 +21,10 @@ const db = mysql.createConnection({
 });
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Specify the folder where uploaded files will be stored
+    cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname); // Use a unique filename for each uploaded file
+    cb(null, Date.now() + '-' + file.originalname);
   },
 });
 
@@ -39,7 +39,7 @@ db.connect((err) => {
 app.post('/api/add-product', authenticateToken, upload.single('product_image'), async (req, res) => {
   try {
     const { product_name, description, product_stock,supplier, createdBy } = req.body;
-    const product_image = req.file.filename; // Get the filename of the uploaded image
+    const product_image = req.file.filename;
 
     // Save form data and image filename to the database
     const query =
@@ -57,7 +57,7 @@ app.post('/api/add-product', authenticateToken, upload.single('product_image'), 
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-// Register user
+
 app.post('/api/add-supplier', authenticateToken ,async (req, res) => {
   console.log(req.body)
   const { supplier_name, location, email, createdBy } = req.body;
@@ -87,7 +87,6 @@ app.get('/api/all-suppliers', authenticateToken, (req, res) => {
 app.post('/api/register', async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
 
-  // Hash password before storing it
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const query = 'INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)';
@@ -100,7 +99,7 @@ app.post('/api/register', async (req, res) => {
     }
   });
 });
-// Login user
+
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -180,11 +179,9 @@ app.get('/api/user-details', authenticateToken, (req, res) => {
     });
   });
   
-// Add this route after your existing routes
 app.get('/api/products-by-supplier/:supplierName', authenticateToken, (req, res) => {
   const supplierName = req.params.supplierName;
   console.log(supplierName)
-  // Query to fetch product names based on the supplier's name
   const query = `
     SELECT product_name
     FROM products

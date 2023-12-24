@@ -149,7 +149,6 @@ const onFinish = values => {
     try {
       const updatedData = editedValues[id];
       if (!updatedData) {
-        // No changes were made, so simply exit the function
         setEditKey(null);
         setEditedValues({}); // Reset editedValues state
         return;
@@ -166,7 +165,6 @@ const onFinish = values => {
       });
   
       if (response.ok) {
-        // Successful update, display a success message if needed
         message.success('Product updated successfully');
         const updatedDataSource = dataSource.map((item) =>
           item.id === id ? { ...item, ...updatedData } : item
@@ -174,7 +172,6 @@ const onFinish = values => {
         setDataSource(updatedDataSource);
         setEditedValues({}); // Reset editedValues state
       } else {
-        // Handle error
         console.error('Failed to update user:', response.statusText);
         message.error('Failed to update user');
       }
@@ -206,7 +203,6 @@ const handleCancelEdit = () => {
       });
   
       if (response.ok) {
-        // Successful deletion, update the state to reflect the change
         setDataSource((prevDataSource) => prevDataSource.filter((user) => user.id !== id));
         message.success('User deleted successfully');
       } else {
