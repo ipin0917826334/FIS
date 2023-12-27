@@ -31,20 +31,20 @@ const ProductCard = ({ product, onAddToCart }) => {
             <div className='mt-5'>
                 <Meta
                     title={<h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{product.product_name}</h2>}
-                    description={<h2 style={{ fontSize: '1.0rem',marginBottom: '0.5rem' }}>Desc: {product.description}</h2>}
+                    description={<h2 style={{ fontSize: '1.0rem', marginBottom: '0.5rem' }}>Desc: {product.description}</h2>}
                 />
                 <Text strong style={{ fontSize: '1.0rem' }}>
                     Price: {product.price} Baht
                 </Text>
                 <div>
-                <Text strong style={{ fontSize: '1.0rem' }}>
-                    In stock: {product.product_stock} qty.
-                </Text>
+                    <Text strong style={{ fontSize: '1.0rem' }}>
+                        In stock: {product.product_stock} qty.
+                    </Text>
                 </div>
             </div>
             {product.product_stock === 0 ? (
                 <div>
-                    <p style={{ color: 'red'}}>Out of Stock</p>
+                    <p style={{ color: 'red' }}>Out of Stock</p>
                 </div>
             ) : (
                 <div style={{ padding: 16, color: 'rgba(0, 0, 0, 0.85)' }}>
@@ -99,6 +99,7 @@ const ProductList = ({ products, onAddToCart }) => {
 
 const ShoppingCart = ({ cart, onRemoveFromCart, onCheckout }) => {
     const columns = [
+        { title: 'Image', dataIndex: 'product_image', key: 'product_image', render: (text, record) => <img src={`http://localhost:5000/uploads/${text}`} alt={record.product_name} className='rounded-md' style={{ minWidth: '75px', minHeight: '75px', width: '75px', height: '75px' }} /> },
         { title: 'Product Name', dataIndex: 'product_name', key: 'product_name' },
         { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
         { title: 'Price', dataIndex: 'price', key: 'price' },
@@ -124,8 +125,8 @@ const ShoppingCart = ({ cart, onRemoveFromCart, onCheckout }) => {
 
     return (
         <div>
-            <h1 className="text-2xl font-bold mb-4 pt-10">Shopping Cart</h1>
-            <Table dataSource={cart} columns={columns} pagination={false} />
+            <h1 className="text-2xl font-bold mb-4 pt-10">Cart</h1>
+            <Table dataSource={cart} columns={columns} pagination={false} style={{ overflowX: 'auto' }} />
             <div style={{ marginTop: '16px', textAlign: 'right' }}>
                 <span>Total Price: {totalPrice.toFixed(2)} Baht</span>
                 <Button type="primary" style={{ marginLeft: '8px' }} onClick={onCheckout}>
@@ -195,42 +196,42 @@ const Sale = () => {
 
     const handleCheckout = async () => {
         try {
-          const token = localStorage.getItem('token');
-          const response = await fetch('http://localhost:5000/api/checkout', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: token,
-            },
-            body: JSON.stringify(cart),
-          });
-    
-          if (response.ok) {
-            const updatedProducts = products.map((product) => {
-              const cartProduct = cart.find((cartItem) => cartItem.id === product.id);
-              if (cartProduct) {
-                return {
-                  ...product,
-                  product_stock: Math.max(product.product_stock - cartProduct.quantity, 0),
-                };
-              }
-              return product;
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: token,
+                },
+                body: JSON.stringify(cart),
             });
-    
-            setProducts(updatedProducts);
-            
-            setCart([]);
-            setVisible(false);
-            message.success('Checkout successful');
-          } else {
-            console.error('Failed to checkout');
-            message.error('Checkout failed');
-          }
+
+            if (response.ok) {
+                const updatedProducts = products.map((product) => {
+                    const cartProduct = cart.find((cartItem) => cartItem.id === product.id);
+                    if (cartProduct) {
+                        return {
+                            ...product,
+                            product_stock: Math.max(product.product_stock - cartProduct.quantity, 0),
+                        };
+                    }
+                    return product;
+                });
+
+                setProducts(updatedProducts);
+
+                setCart([]);
+                setVisible(false);
+                message.success('Checkout successful');
+            } else {
+                console.error('Failed to checkout');
+                message.error('Checkout failed');
+            }
         } catch (error) {
-          console.error('Error during checkout:', error);
-          message.error('Error during checkout');
+            console.error('Error during checkout:', error);
+            message.error('Error during checkout');
         }
-      };
+    };
 
 
     return (
@@ -241,7 +242,7 @@ const Sale = () => {
                 </Button>
             </Badge>
             <Modal
-                title="Shopping Cart"
+                title="Cart"
                 visible={visible}
                 onCancel={() => setVisible(false)}
                 footer={null}
