@@ -127,7 +127,7 @@ const ShoppingCart = ({ cart, onRemoveFromCart, onCheckout }) => {
             <h1 className="text-2xl font-bold mb-4 pt-10">Shopping Cart</h1>
             <Table dataSource={cart} columns={columns} pagination={false} />
             <div style={{ marginTop: '16px', textAlign: 'right' }}>
-                <span>Total Price: ${totalPrice.toFixed(2)}</span>
+                <span>Total Price: {totalPrice.toFixed(2)} Baht</span>
                 <Button type="primary" style={{ marginLeft: '8px' }} onClick={onCheckout}>
                     Checkout
                 </Button>
