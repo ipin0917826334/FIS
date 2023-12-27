@@ -104,3 +104,31 @@ button:focus-visible {
   height: 1000px;
   background-color: #001529 !important;
 } */
+button.ant-btn {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #88AB8D; /* Set your desired background color */
+  color: #fff; /* Set your desired text color */
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+button.ant-btn:hover {
+  border-color: #646cff; /* Set your desired border color on hover */
+}
+
+button.ant-btn:focus,
+button.ant-btn:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+.flex-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.badge-container {
+  margin-left: 16px; /* Adjust the margin as needed */
+}

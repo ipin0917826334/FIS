@@ -38,13 +38,12 @@ db.connect((err) => {
 });
 app.post('/api/add-product', authenticateToken, upload.single('product_image'), async (req, res) => {
   try {
-    const { product_name, description, product_stock,supplier, createdBy } = req.body;
+    const { product_name, description,price, product_stock,supplier, createdBy } = req.body;
     const product_image = req.file.filename;
 
-    // Save form data and image filename to the database
     const query =
-      'INSERT INTO products (product_name, product_stock, description,  product_image , supplier, created_by) VALUES (?, ? , ?, ?, ?, ?)';
-    db.query(query, [product_name,product_stock, description, product_image, supplier, createdBy], (err, results) => {
+      'INSERT INTO products (product_name, product_stock, description, price, product_image , supplier, created_by) VALUES (?, ? , ?, ?, ?, ?, ?)';
+    db.query(query, [product_name,product_stock, description,price, product_image, supplier, createdBy], (err, results) => {
       if (err) {
         console.error('Error add product:', err);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -118,7 +117,7 @@ app.post('/api/login', (req, res) => {
 
       if (match) {
         // Generate token
-        const token = jwt.sign({ userId: user.id }, 'pea458', { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user.id }, 'pea458', { expiresIn: '8h' });
 
         res.status(200).json({ token });
       } else {
@@ -162,7 +161,6 @@ app.get('/api/all-users', authenticateToken, (req, res) => {
     });
   });
 app.get('/api/user-details', authenticateToken, (req, res) => {
-    // req.user contains the decoded user ID from the token
     const userId = req.user.userId;
   
     const query = 'SELECT first_name, last_name FROM users WHERE id = ?';
@@ -322,6 +320,63 @@ function authenticateToken(req, res, next) {
       }
     });
   });
+  app.post('/api/checkout', authenticateToken, async (req, res) => {
+    const cart = req.body;
+  
+    try {
+      for (const item of cart) {
+        const productId = item.id;
+        const productQuantity = item.quantity;
+
+        const product = await getProductById(productId);
+  
+        if (!product) {
+          return res.status(404).json({ error: `Product with ID ${productId} not found` });
+        }
+  
+        if (product.product_stock < productQuantity) {
+          return res.status(400).json({ error: `Insufficient stock for product ${product.product_name}` });
+        }
+        const newStock = product.product_stock - productQuantity;
+
+        await updateProductStockInDatabase(productId, newStock);
+      }
+  
+
+  
+      res.status(200).json({ message: 'Checkout successful' });
+    } catch (error) {
+      console.error('Error during checkout:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+  async function getProductById(productId) {
+    return new Promise((resolve, reject) => {
+      const query = 'SELECT * FROM products WHERE id = ?';
+      db.query(query, [productId], (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results[0]);
+        }
+      });
+    });
+  }
+  
+  async function updateProductStockInDatabase(productId, newStock) {
+    return new Promise((resolve, reject) => {
+      const updateQuery = 'UPDATE products SET product_stock = ? WHERE id = ?';
+      db.query(updateQuery, [newStock, productId], (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
+  
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

@@ -27,7 +27,7 @@ import ViewProduct from "./components/viewProduct";
 import ViewSafetyStock from "./components/viewSafetyStock";
 import ViewSupplier from "./components/viewSupplier";
 import ViewUser from "./components/viewUser";
-import AuthRoute from "./components/AuthRoute";
+import Sale from "./components/Sale";
 import type { MenuProps } from "antd";
 
 const { Header, Sider, Content } = Layout;
@@ -63,18 +63,18 @@ function App() {
     const token = localStorage.getItem("token");
   
     if (!token) {
-      // If there is no token, navigate to the login page
-      // Modal.error({
-      //   title: "Session timeout",
-      //   content: "You need to log in to access this page.",
-      //   onOk: () => navigate("/login"),
-      // });
       navigate("/login");
     } else {
-      fetchUserDetails(token);
+      fetchUserDetails(token).then((userDetails) => {
+        if (!userDetails) {
+          localStorage.removeItem("token");
+          navigate("/login");
+        } else {
+          setUserDetails(userDetails);
+        }
+      });
     }
   }, [navigate]);
-  
   const items: MenuItem[] = [
     getItem("DASHBOARD", "1", <PieChartOutlined />, "/dashboard", DashBoard),
     getItem("REPORTS", "2", <FileOutlined />, "/report", Report),
@@ -95,14 +95,8 @@ function App() {
       getItem("View User", "11", null, "/view-user", ViewUser),
       getItem("Add User", "12", null, "/add-user", AddUser),
     ]),
+    getItem("SALES", "13", <ShoppingCartOutlined />, "/sale", Sale),
   ];
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (token) {
-      fetchUserDetails(token);
-    }
-  }, []); 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setUserDetails(null);
@@ -116,15 +110,17 @@ function App() {
           Authorization: `${token}`,
         },
       });
-
+  
       if (response.ok) {
         const userDetails = await response.json();
-        setUserDetails(userDetails);
+        return userDetails;
       } else {
         console.error("Failed to fetch user details");
+        return null;
       }
     } catch (error) {
       console.error("Error fetching user details:", error);
+      return null;
     }
   };
 
@@ -195,6 +191,9 @@ function App() {
                     <Link to="/add-user">Add User</Link>
                   </Menu.Item>
                 </Menu.SubMenu>
+                <Menu.Item key="13" icon={<ShoppingCartOutlined />}>
+                    <Link to="/sale">SALES</Link>
+                  </Menu.Item>
                   </Menu>
                 </Sider>
                 </ConfigProvider>

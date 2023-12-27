@@ -42,6 +42,7 @@ const AddProduct = ({ userDetails }) => {
       const formData = new FormData();
       formData.append('product_name', values.product_name);
       formData.append('description', values.description);
+      formData.append('price', values.price);
       formData.append('supplier', values.supplier);
       formData.append('product_stock', values.product_stock);
       formData.append('createdBy', createdBy);
@@ -103,6 +104,13 @@ const AddProduct = ({ userDetails }) => {
           rules={[{ required: true, message: 'Please enter description!' }]}
         >
           <Input placeholder="Description" />
+        </Form.Item>
+        <Form.Item
+          label="Price"
+          name="price"
+          rules={[{ required: true, message: 'Please enter price!' }]}
+        >
+          <Input placeholder="Price" />
         </Form.Item>
 
         <Form.Item

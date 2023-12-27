@@ -19,6 +19,7 @@ const ViewProduct = () => {
     { title: 'Product Name', dataIndex: 'product_name', key: 'product_name', render: (text, record) => renderEditableCell(text, record, 'product_name') },
     { title: 'Stock', dataIndex: 'product_stock', key: 'product_stock', render: (text, record) => renderEditableCell(text, record, 'product_stock') },
     { title: 'Description', dataIndex: 'description', key: 'description', render: (text, record) => renderEditableCell(text, record, 'description') },
+    { title: 'Price', dataIndex: 'price', key: 'price', render: (text, record) => renderEditableCell(text, record, 'price') },
     { title: 'Supplier', dataIndex: 'supplier', key: 'supplier'},
     { title: 'Created By', dataIndex: 'created_by', key: 'description'},
 
