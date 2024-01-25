@@ -38,12 +38,14 @@ db.connect((err) => {
 });
 app.post('/api/add-product', authenticateToken, upload.single('product_image'), async (req, res) => {
   try {
-    const { product_name, description,price, product_stock,supplier, createdBy } = req.body;
+    const userId = req.user.userId;
+    const { product_name, description, price, product_stock, supplier_id } = req.body; // change supplier to supplier_id
     const product_image = req.file.filename;
 
+    // Update your SQL query to use the supplier_id
     const query =
-      'INSERT INTO products (product_name, product_stock, description, price, product_image , supplier, created_by) VALUES (?, ? , ?, ?, ?, ?, ?)';
-    db.query(query, [product_name,product_stock, description,price, product_image, supplier, createdBy], (err, results) => {
+      'INSERT INTO products (product_name, product_stock, description, price, product_image, supplier_id, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    db.query(query, [product_name, product_stock, description, price, product_image, supplier_id, userId], (err, results) => {
       if (err) {
         console.error('Error add product:', err);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -59,10 +61,11 @@ app.post('/api/add-product', authenticateToken, upload.single('product_image'), 
 
 app.post('/api/add-supplier', authenticateToken ,async (req, res) => {
   console.log(req.body)
-  const { supplier_name, location, email, createdBy } = req.body;
+  const userId = req.user.userId;
+  const { supplier_name, location, email } = req.body;
   console.log(supplier_name,location,email);
-  const query = 'INSERT INTO suppliers (supplier_name, location, email, created_by) VALUES (?, ?, ?, ?)';
-  db.query(query, [supplier_name, location, email, createdBy], (err, results) => {
+  const query = 'INSERT INTO suppliers (supplier_name, location, email, user_id) VALUES (?, ?, ?, ?)';
+  db.query(query, [supplier_name, location, email, userId], (err, results) => {
     if (err) {
       console.error('Error add supplier:', err);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -72,7 +75,10 @@ app.post('/api/add-supplier', authenticateToken ,async (req, res) => {
   });
 });
 app.get('/api/all-suppliers', authenticateToken, (req, res) => {
-  const query = 'SELECT * FROM suppliers';
+  const query = `
+  SELECT suppliers.*, CONCAT(users.first_name, ' ', users.last_name) AS created_by
+  FROM suppliers 
+  JOIN users ON suppliers.user_id = users.id`;
   db.query(query, (err, results) => {
     if (err) {
       console.error('Error fetching all suppliers:', err);
@@ -138,7 +144,11 @@ app.get('/api/all-users', authenticateToken, (req, res) => {
     });
   });
   app.get('/api/all-products', authenticateToken, (req, res) => {
-    const query = 'SELECT * FROM products';
+    const query = `
+    SELECT products.*, CONCAT(users.first_name, ' ', users.last_name) AS created_by, suppliers.supplier_name AS supplier
+    FROM products 
+    JOIN users ON products.user_id = users.id
+    JOIN suppliers ON products.supplier_id = suppliers.id`;
     db.query(query, (err, results) => {
       if (err) {
         console.error('Error fetching products:', err);
@@ -148,22 +158,10 @@ app.get('/api/all-users', authenticateToken, (req, res) => {
       }
     });
   });
-  app.get('/api/all-suppliers', authenticateToken, (req, res) => {
-    const query = 'SELECT * FROM suppliers';
-    db.query(query, (err, results) => {
-      if (err) {
-        console.error('Error fetching all suppliers:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-      } else {
-        res.status(200).json(results);
-        console.log(results)
-      }
-    });
-  });
 app.get('/api/user-details', authenticateToken, (req, res) => {
     const userId = req.user.userId;
   
-    const query = 'SELECT first_name, last_name FROM users WHERE id = ?';
+    const query = 'SELECT id, first_name, last_name FROM users WHERE id = ?';
     db.query(query, [userId], (err, results) => {
       if (err) {
         console.error('Error fetching user details:', err);
@@ -177,27 +175,28 @@ app.get('/api/user-details', authenticateToken, (req, res) => {
     });
   });
   
-app.get('/api/products-by-supplier/:supplierName', authenticateToken, (req, res) => {
-  const supplierName = req.params.supplierName;
-  console.log(supplierName)
-  const query = `
-    SELECT product_name
-    FROM products
-    WHERE supplier = (
-      SELECT supplier_name FROM suppliers WHERE supplier_name = ?
-    )
-  `;
-
-  db.query(query, [supplierName], (err, results) => {
-    if (err) {
-      console.error('Error fetching products by supplier:', err);
-      res.status(500).json({ error: 'Internal Server Error' });
-    } else {
-      const productNames = results.map((result) => result.product_name);
-      res.status(200).json(productNames);
-    }
+  app.get('/api/products-by-supplier/:id', authenticateToken, (req, res) => {
+    const supplierId = req.params.id;
+    
+    // Assuming that each product has a 'supplier_id' that references 'id' in the 'suppliers' table
+    const query = `
+      SELECT product_name
+      FROM products
+      WHERE supplier_id = ?
+    `;
+    
+    db.query(query, [supplierId], (err, results) => {
+      if (err) {
+        console.error('Error fetching products by supplier:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+      } else {
+        const productNames = results.map((result) => result.product_name);
+        res.status(200).json(productNames);
+      }
+    });
   });
-});
+  
+  
 
   // Middleware to authenticate the token
 function authenticateToken(req, res, next) {
@@ -244,11 +243,11 @@ function authenticateToken(req, res, next) {
     const productId = req.params.id;
     const updatedProductData = req.body;
   
-    const updateQuery = 'UPDATE products SET product_name = ?, product_stock = ?, description = ? WHERE id = ?';
+    const updateQuery = 'UPDATE products SET product_name = ?, product_stock = ?, description = ?, price = ? WHERE id = ?';
   
     db.query(
       updateQuery,
-      [updatedProductData.product_name, updatedProductData.product_stock, updatedProductData.description, productId],
+      [updatedProductData.product_name, updatedProductData.product_stock, updatedProductData.description, updatedProductData.price, productId],
       (err, results) => {
         if (err) {
           console.error('Error updating products:', err);

@@ -15,7 +15,7 @@ const ViewSupplier = () => {
   const [editedValues, setEditedValues] = useState({});
   const columns = [
     { title: '#', dataIndex: 'id', key: 'id' },
-    { title: 'Supplier Name', dataIndex: 'supplier_name', key: 'supplier_name' },
+    { title: 'Supplier Name', dataIndex: 'supplier_name', key: 'supplier_name',render: (text, record) => renderEditableCell(text, record, 'supplier_name') },
     { title: 'Supplier Location', dataIndex: 'location', key: 'location', render: (text, record) => renderEditableCell(text, record, 'location') },
     { title: 'Contract Details', dataIndex: 'email', key: 'email', render: (text, record) => renderEditableCell(text, record, 'email') },
     { 
@@ -56,10 +56,10 @@ const ViewSupplier = () => {
       ),
     },
   ];
-  const fetchProductNames = async (supplierName) => {
+  const fetchProductNames = async (id) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:5000/api/products-by-supplier/${encodeURIComponent(supplierName)}`, {
+    const response = await fetch(`http://localhost:5000/api/products-by-supplier/${encodeURIComponent(id)}`, {
       method: 'GET',
       headers: {
         Authorization: token,
@@ -94,10 +94,10 @@ useEffect(() => {
 
       if (response.ok) {
         const data = await response.json();
-
+        console.log(data)
         // Fetch product names for each supplier
         const dataWithKeys = await Promise.all(data.map(async (item) => {
-          const productNames = await fetchProductNames(item.supplier_name);
+          const productNames = await fetchProductNames(item.id);
           return { ...item, key: String(item.id), product_names: productNames };
         }));
 

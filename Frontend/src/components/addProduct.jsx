@@ -22,7 +22,7 @@ const AddProduct = ({ userDetails }) => {
         });
         if (response.ok) {
           const suppliers = await response.json();
-          setSupplierOptions(suppliers.map((supplier) => ({ value: supplier.supplier_name, label: supplier.supplier_name })));
+          setSupplierOptions(suppliers.map((supplier) => ({ value: supplier.id, label: supplier.supplier_name })));
         } else {
           console.error('Failed to fetch suppliers');
         }
@@ -37,17 +37,17 @@ const AddProduct = ({ userDetails }) => {
   const onFinish = async (values) => {
     try {
       const token = localStorage.getItem('token');
-      const createdBy = userDetails.first_name +" "+ userDetails.last_name;
+      // const createdBy = userDetails.first_name +" "+ userDetails.last_name;
   
       const formData = new FormData();
       formData.append('product_name', values.product_name);
       formData.append('description', values.description);
       formData.append('price', values.price);
-      formData.append('supplier', values.supplier);
+      formData.append('supplier_id', values.supplier_id);
       formData.append('product_stock', values.product_stock);
-      formData.append('createdBy', createdBy);
+      // formData.append('createdBy', createdBy);
       formData.append('product_image', values.product_image[0].originFileObj);
-  
+      
       const response = await fetch('http://localhost:5000/api/add-product', {
         method: 'POST',
         headers: {
@@ -60,6 +60,7 @@ const AddProduct = ({ userDetails }) => {
         console.log('Add Product successfully');
         setIsModalVisible(true);
       } else {
+        console.log(values.supplier)
         console.error('Add Product failed');
       }
     } catch (error) {
@@ -115,7 +116,7 @@ const AddProduct = ({ userDetails }) => {
 
         <Form.Item
           label="Supplier"
-          name="supplier"
+          name="supplier_id"
           rules={[{ required: true, message: 'Please select a supplier!' }]}
         >
           <Select placeholder="Select Supplier" options={supplierOptions} />

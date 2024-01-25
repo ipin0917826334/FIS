@@ -6,7 +6,8 @@ const AddSupplier = ({ userDetails }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const onFinish = async (values) => {
     try {
-      const createdBy = userDetails.first_name +" "+  userDetails.last_name;
+      const createdBy = userDetails.id;
+      console.log(userDetails.id)
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5000/api/add-supplier', {
         method: 'POST',
@@ -14,7 +15,7 @@ const AddSupplier = ({ userDetails }) => {
           Authorization: token,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ ...values, createdBy }),
+        body: JSON.stringify({ ...values }),
       });
 
       if (response.ok) {
