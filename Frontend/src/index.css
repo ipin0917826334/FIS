@@ -110,7 +110,7 @@ button.ant-btn {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #88AB8D; /* Set your desired background color */
+  background-color: #88AB8D; 
   color: #fff; /* Set your desired text color */
   cursor: pointer;
   transition: border-color 0.25s;
@@ -132,3 +132,6 @@ button.ant-btn:focus-visible {
 .badge-container {
   margin-left: 16px; /* Adjust the margin as needed */
 }
+/* .btn_pdf {
+  background-color: '#00b96b' !important;
+} */

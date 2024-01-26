@@ -39,10 +39,9 @@ db.connect((err) => {
 app.post('/api/add-product', authenticateToken, upload.single('product_image'), async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { product_name, description, price, product_stock, supplier_id } = req.body; // change supplier to supplier_id
+    const { product_name, description, price, product_stock, supplier_id } = req.body;
     const product_image = req.file.filename;
 
-    // Update your SQL query to use the supplier_id
     const query =
       'INSERT INTO products (product_name, product_stock, description, price, product_image, supplier_id, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
     db.query(query, [product_name, product_stock, description, price, product_image, supplier_id, userId], (err, results) => {
@@ -59,11 +58,11 @@ app.post('/api/add-product', authenticateToken, upload.single('product_image'), 
   }
 });
 
-app.post('/api/add-supplier', authenticateToken ,async (req, res) => {
+app.post('/api/add-supplier', authenticateToken, async (req, res) => {
   console.log(req.body)
   const userId = req.user.userId;
   const { supplier_name, location, email } = req.body;
-  console.log(supplier_name,location,email);
+  console.log(supplier_name, location, email);
   const query = 'INSERT INTO suppliers (supplier_name, location, email, user_id) VALUES (?, ?, ?, ?)';
   db.query(query, [supplier_name, location, email, userId], (err, results) => {
     if (err) {
@@ -133,249 +132,374 @@ app.post('/api/login', (req, res) => {
   });
 });
 app.get('/api/all-users', authenticateToken, (req, res) => {
-    const query = 'SELECT * FROM users';
-    db.query(query, (err, results) => {
-      if (err) {
-        console.error('Error fetching all users:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-      } else {
-        res.status(200).json(results);
-      }
-    });
+  const query = 'SELECT * FROM users';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching all users:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.status(200).json(results);
+    }
   });
-  app.get('/api/all-products', authenticateToken, (req, res) => {
-    const query = `
+});
+app.get('/api/all-products', authenticateToken, (req, res) => {
+  const query = `
     SELECT products.*, CONCAT(users.first_name, ' ', users.last_name) AS created_by, suppliers.supplier_name AS supplier
     FROM products 
     JOIN users ON products.user_id = users.id
     JOIN suppliers ON products.supplier_id = suppliers.id`;
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching products:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
+function generateBatchNumber() {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const randomString = Math.random().toString(36).substring(2, 8).toUpperCase();
+  return `BATCH-${year}${month}${day}-${randomString}`;
+}
+app.post('/api/submit-order', authenticateToken, (req, res) => {
+  const userId = req.user.userId;
+  const { orderItems } = req.body;
+
+  db.beginTransaction(err => {
+    if (err) {
+      console.error('Error starting transaction:', err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    const batchNumber = generateBatchNumber();
+    db.query('INSERT INTO batches (batch_number) VALUES (?)', [batchNumber], (err, batchResult) => {
+      if (err) {
+        db.rollback(() => {
+          console.error('Error inserting batch:', err);
+          res.status(500).json({ error: 'Internal Server Error' });
+        });
+        return;
+      }
+      const batchId = batchResult.insertId;
+      db.query(
+        'INSERT INTO orders (batch_id, ordered_by_user_id) VALUES (?, ?)',
+        [batchId, userId],
+        (err, orderResult) => {
+          if (err) {
+            db.rollback(() => {
+              console.error('Error inserting order:', err);
+              res.status(500).json({ error: 'Internal Server Error' });
+            });
+            return;
+          }
+          const leadTime = 5;
+          const orderId = orderResult.insertId;
+          const orderItemsQueries = orderItems.map(item => {
+            return new Promise((resolve, reject) => {
+              db.query('INSERT INTO order_items (order_id, product_id, quantity, lead_time, received_date) VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL ? DAY))', [orderId, item.productId, item.quantity, leadTime, leadTime], (err, result) => {
+                if (err) {
+                  return reject(err);
+                }
+                resolve(result);
+              });
+            });
+          });
+
+          Promise.all(orderItemsQueries)
+            .then(() => {
+              db.commit(err => {
+                if (err) {
+                  db.rollback(() => {
+                    console.error('Error committing transaction:', err);
+                    res.status(500).json({ error: 'Internal Server Error' });
+                  });
+                  return;
+                }
+                res.status(201).json({ message: 'Order submitted successfully', batchId });
+              });
+            })
+            .catch(err => {
+              db.rollback(() => {
+                console.error('Error inserting order items:', err);
+                res.status(500).json({ error: 'Internal Server Error' });
+              });
+            });
+        });
+    });
+  });
+});
+
+app.get('/api/orders-by-batch', authenticateToken, async (req, res) => {
+  try {
+    const query = `
+        SELECT 
+          batches.batch_number,
+          orders.id AS order_id,
+          order_items.lead_time AS lead_time,
+          order_items.received_date AS received_date,
+          order_items.product_id,
+          order_items.quantity,
+          products.product_name,
+          CONCAT(users.first_name, ' ', users.last_name) AS ordered_by,
+          suppliers.supplier_name  AS supplier,
+          orders.created_at AS created_at
+        FROM batches
+        JOIN orders ON orders.batch_id = batches.id
+        JOIN order_items ON order_items.order_id = orders.id
+        JOIN products ON order_items.product_id = products.id
+        JOIN users ON orders.ordered_by_user_id = users.id
+        JOIN suppliers ON products.supplier_id = suppliers.id
+        ORDER BY batches.created_at DESC, orders.created_at ASC
+      `;
+
     db.query(query, (err, results) => {
       if (err) {
-        console.error('Error fetching products:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-      } else {
-        res.status(200).json(results);
+        console.error('Error fetching orders by batch:', err);
+        return res.status(500).json({ error: 'Internal Server Error' });
       }
+
+      // Transform results into grouped data by batch
+      const ordersByBatch = results.reduce((groupedOrders, order) => {
+        const batch = groupedOrders[order.batch_number] || [];
+        batch.push({
+          ...order,
+          ordered_by: order.ordered_by,
+          supplier_name: order.supplier_name
+        });
+        groupedOrders[order.batch_number] = batch;
+        return groupedOrders;
+      }, {});
+
+      res.json(ordersByBatch);
     });
-  });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 app.get('/api/user-details', authenticateToken, (req, res) => {
-    const userId = req.user.userId;
-  
-    const query = 'SELECT id, first_name, last_name FROM users WHERE id = ?';
-    db.query(query, [userId], (err, results) => {
-      if (err) {
-        console.error('Error fetching user details:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-      } else if (results.length === 0) {
-        res.status(404).json({ error: 'User not found' });
-      } else {
-        const userDetails = results[0];
-        res.status(200).json(userDetails);
-      }
-    });
+  const userId = req.user.userId;
+
+  const query = 'SELECT id, first_name, last_name FROM users WHERE id = ?';
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching user details:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else if (results.length === 0) {
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      const userDetails = results[0];
+      res.status(200).json(userDetails);
+    }
   });
-  
-  app.get('/api/products-by-supplier/:id', authenticateToken, (req, res) => {
-    const supplierId = req.params.id;
-    
-    // Assuming that each product has a 'supplier_id' that references 'id' in the 'suppliers' table
-    const query = `
+});
+
+app.get('/api/products-by-supplier/:id', authenticateToken, (req, res) => {
+  const supplierId = req.params.id;
+
+  const query = `
       SELECT product_name
       FROM products
       WHERE supplier_id = ?
     `;
-    
-    db.query(query, [supplierId], (err, results) => {
-      if (err) {
-        console.error('Error fetching products by supplier:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-      } else {
-        const productNames = results.map((result) => result.product_name);
-        res.status(200).json(productNames);
-      }
-    });
-  });
-  
-  
 
-  // Middleware to authenticate the token
-function authenticateToken(req, res, next) {
-    const token = req.headers['authorization'];
-    console.log("ssss11s");
-  
-    if (!token) {
-      console.log("ssss11s");
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-  
-    jwt.verify(token, 'pea458', (err, user) => {
-        if (err) {
-          console.error('Error verifying token:', err);
-          return res.status(403).json({ error: 'Forbidden' });
-        }
-      
-        console.log("sssss222");
-        req.user = user;
-        console.log(req.user);
-        next();
-      });
-  }
-  app.put('/api/update-user/:id', authenticateToken, (req, res) => {
-    const userId = req.params.id;
-    const updatedUserData = req.body;
-  
-    const updateQuery = 'UPDATE users SET first_name = ?, last_name = ?, email = ? WHERE id = ?';
-  
-    db.query(
-      updateQuery,
-      [updatedUserData.first_name, updatedUserData.last_name, updatedUserData.email, userId],
-      (err, results) => {
-        if (err) {
-          console.error('Error updating user:', err);
-          res.status(500).json({ error: 'Internal Server Error' });
-        } else {
-          res.status(200).json({ message: 'User updated successfully' });
-        }
-      }
-    );
-  });
-  app.put('/api/update-product/:id', authenticateToken, (req, res) => {
-    const productId = req.params.id;
-    const updatedProductData = req.body;
-  
-    const updateQuery = 'UPDATE products SET product_name = ?, product_stock = ?, description = ?, price = ? WHERE id = ?';
-  
-    db.query(
-      updateQuery,
-      [updatedProductData.product_name, updatedProductData.product_stock, updatedProductData.description, updatedProductData.price, productId],
-      (err, results) => {
-        if (err) {
-          console.error('Error updating products:', err);
-          res.status(500).json({ error: 'Internal Server Error' });
-        } else {
-          res.status(200).json({ message: 'Product updated successfully' });
-        }
-      }
-    );
-  });
-  app.put('/api/update-supplier/:id', authenticateToken, (req, res) => {
-    const supplierId = req.params.id;
-    const updatedSupplierData = req.body;
-  
-    const updateQuery = 'UPDATE suppliers SET supplier_name = ?, location = ?, email = ? WHERE id = ?';
-  
-    db.query(
-      updateQuery,
-      [updatedSupplierData.supplier_name, updatedSupplierData.location, updatedSupplierData.email, supplierId],
-      (err, results) => {
-        if (err) {
-          console.error('Error updating supplier:', err);
-          res.status(500).json({ error: 'Internal Server Error' });
-        } else {
-          res.status(200).json({ message: 'Supplier updated successfully' });
-        }
-      }
-    );
-  });
-  app.delete('/api/delete-user/:id', authenticateToken, (req, res) => {
-    const userId = req.params.id;
-    console.log(userId);
-    const deleteQuery = 'DELETE FROM users WHERE id = ?';
-  
-    db.query(deleteQuery, [userId], (err, results) => {
-      if (err) {
-        console.error('Error deleting user:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-      } else {
-        res.status(200).json({ message: 'User deleted successfully' });
-      }
-    });
-  });
-  app.delete('/api/delete-product/:id', authenticateToken, (req, res) => {
-    const productId = req.params.id;
-    console.log(productId);
-    const deleteQuery = 'DELETE FROM products WHERE id = ?';
-  
-    db.query(deleteQuery, [productId], (err, results) => {
-      if (err) {
-        console.error('Error deleting user:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-      } else {
-        res.status(200).json({ message: 'Product deleted successfully' });
-      }
-    });
-  });
-  app.delete('/api/delete-supplier/:id', authenticateToken, (req, res) => {
-    const supplierId = req.params.id;
-  
-    const deleteQuery = 'DELETE FROM suppliers WHERE id = ?';
-  
-    db.query(deleteQuery, [supplierId], (err, results) => {
-      if (err) {
-        console.error('Error deleting supplier:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-      } else {
-        res.status(200).json({ message: 'Supplier deleted successfully' });
-      }
-    });
-  });
-  app.post('/api/checkout', authenticateToken, async (req, res) => {
-    const cart = req.body;
-  
-    try {
-      for (const item of cart) {
-        const productId = item.id;
-        const productQuantity = item.quantity;
-
-        const product = await getProductById(productId);
-  
-        if (!product) {
-          return res.status(404).json({ error: `Product with ID ${productId} not found` });
-        }
-  
-        if (product.product_stock < productQuantity) {
-          return res.status(400).json({ error: `Insufficient stock for product ${product.product_name}` });
-        }
-        const newStock = product.product_stock - productQuantity;
-
-        await updateProductStockInDatabase(productId, newStock);
-      }
-  
-
-  
-      res.status(200).json({ message: 'Checkout successful' });
-    } catch (error) {
-      console.error('Error during checkout:', error);
+  db.query(query, [supplierId], (err, results) => {
+    if (err) {
+      console.error('Error fetching products by supplier:', err);
       res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      const productNames = results.map((result) => result.product_name);
+      res.status(200).json(productNames);
     }
   });
-  
-  async function getProductById(productId) {
-    return new Promise((resolve, reject) => {
-      const query = 'SELECT * FROM products WHERE id = ?';
-      db.query(query, [productId], (err, results) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(results[0]);
-        }
-      });
-    });
+});
+
+
+
+// Middleware to authenticate the token
+function authenticateToken(req, res, next) {
+  const token = req.headers['authorization'];
+  console.log("ssss11s");
+
+  if (!token) {
+    console.log("ssss11s");
+    return res.status(401).json({ error: 'Unauthorized' });
   }
-  
-  async function updateProductStockInDatabase(productId, newStock) {
-    return new Promise((resolve, reject) => {
-      const updateQuery = 'UPDATE products SET product_stock = ? WHERE id = ?';
-      db.query(updateQuery, [newStock, productId], (err, results) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
+
+  jwt.verify(token, 'pea458', (err, user) => {
+    if (err) {
+      console.error('Error verifying token:', err);
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    console.log("sssss222");
+    req.user = user;
+    console.log(req.user);
+    next();
+  });
+}
+app.put('/api/update-user/:id', authenticateToken, (req, res) => {
+  const userId = req.params.id;
+  const updatedUserData = req.body;
+
+  const updateQuery = 'UPDATE users SET first_name = ?, last_name = ?, email = ? WHERE id = ?';
+
+  db.query(
+    updateQuery,
+    [updatedUserData.first_name, updatedUserData.last_name, updatedUserData.email, userId],
+    (err, results) => {
+      if (err) {
+        console.error('Error updating user:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+      } else {
+        res.status(200).json({ message: 'User updated successfully' });
+      }
+    }
+  );
+});
+app.put('/api/update-product/:id', authenticateToken, (req, res) => {
+  const productId = req.params.id;
+  const updatedProductData = req.body;
+
+  const updateQuery = 'UPDATE products SET product_name = ?, product_stock = ?, description = ?, price = ? WHERE id = ?';
+
+  db.query(
+    updateQuery,
+    [updatedProductData.product_name, updatedProductData.product_stock, updatedProductData.description, updatedProductData.price, productId],
+    (err, results) => {
+      if (err) {
+        console.error('Error updating products:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+      } else {
+        res.status(200).json({ message: 'Product updated successfully' });
+      }
+    }
+  );
+});
+app.put('/api/update-supplier/:id', authenticateToken, (req, res) => {
+  const supplierId = req.params.id;
+  const updatedSupplierData = req.body;
+
+  const updateQuery = 'UPDATE suppliers SET supplier_name = ?, location = ?, email = ? WHERE id = ?';
+
+  db.query(
+    updateQuery,
+    [updatedSupplierData.supplier_name, updatedSupplierData.location, updatedSupplierData.email, supplierId],
+    (err, results) => {
+      if (err) {
+        console.error('Error updating supplier:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+      } else {
+        res.status(200).json({ message: 'Supplier updated successfully' });
+      }
+    }
+  );
+});
+app.delete('/api/delete-user/:id', authenticateToken, (req, res) => {
+  const userId = req.params.id;
+  console.log(userId);
+  const deleteQuery = 'DELETE FROM users WHERE id = ?';
+
+  db.query(deleteQuery, [userId], (err, results) => {
+    if (err) {
+      console.error('Error deleting user:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.status(200).json({ message: 'User deleted successfully' });
+    }
+  });
+});
+app.delete('/api/delete-product/:id', authenticateToken, (req, res) => {
+  const productId = req.params.id;
+  console.log(productId);
+  const deleteQuery = 'DELETE FROM products WHERE id = ?';
+
+  db.query(deleteQuery, [productId], (err, results) => {
+    if (err) {
+      console.error('Error deleting user:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.status(200).json({ message: 'Product deleted successfully' });
+    }
+  });
+});
+app.delete('/api/delete-supplier/:id', authenticateToken, (req, res) => {
+  const supplierId = req.params.id;
+
+  const deleteQuery = 'DELETE FROM suppliers WHERE id = ?';
+
+  db.query(deleteQuery, [supplierId], (err, results) => {
+    if (err) {
+      console.error('Error deleting supplier:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      res.status(200).json({ message: 'Supplier deleted successfully' });
+    }
+  });
+});
+app.post('/api/checkout', authenticateToken, async (req, res) => {
+  const cart = req.body;
+
+  try {
+    for (const item of cart) {
+      const productId = item.id;
+      const productQuantity = item.quantity;
+
+      const product = await getProductById(productId);
+
+      if (!product) {
+        return res.status(404).json({ error: `Product with ID ${productId} not found` });
+      }
+
+      if (product.product_stock < productQuantity) {
+        return res.status(400).json({ error: `Insufficient stock for product ${product.product_name}` });
+      }
+      const newStock = product.product_stock - productQuantity;
+
+      await updateProductStockInDatabase(productId, newStock);
+    }
+
+
+
+    res.status(200).json({ message: 'Checkout successful' });
+  } catch (error) {
+    console.error('Error during checkout:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-  
+});
+
+async function getProductById(productId) {
+  return new Promise((resolve, reject) => {
+    const query = 'SELECT * FROM products WHERE id = ?';
+    db.query(query, [productId], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results[0]);
+      }
+    });
+  });
+}
+
+async function updateProductStockInDatabase(productId, newStock) {
+  return new Promise((resolve, reject) => {
+    const updateQuery = 'UPDATE products SET product_stock = ? WHERE id = ?';
+    db.query(updateQuery, [newStock, productId], (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

@@ -79,7 +79,7 @@ const ProductList = ({ products, onAddToCart }) => {
 
     return (
         <div>
-            <h1 className="text-2xl font-bold mb-4 pt-10">List of Products</h1>
+            <h1 className="text-2xl font-bold mb-4 pt-10">List of Products ({products.length})</h1>
 
             <Input
                 placeholder="Search products"
@@ -125,7 +125,7 @@ const ShoppingCart = ({ cart, onRemoveFromCart, onCheckout }) => {
 
     return (
         <div>
-            <h1 className="text-2xl font-bold mb-4 pt-10">Cart</h1>
+            <h1 className="text-2xl font-bold mb-4 pt-10">Cart ({cart.length})</h1>
             <Table dataSource={cart} columns={columns} pagination={false} style={{ overflowX: 'auto' }} />
             <div style={{ marginTop: '16px', textAlign: 'right' }}>
                 <span>Total Price: {totalPrice.toFixed(2)} Baht</span>

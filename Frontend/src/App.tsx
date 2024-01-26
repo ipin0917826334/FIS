@@ -77,7 +77,7 @@ function App() {
   }, [navigate]);
   const items: MenuItem[] = [
     getItem("DASHBOARD", "1", <PieChartOutlined />, "/dashboard", DashBoard),
-    getItem("REPORTS", "2", <FileOutlined />, "/report", Report),
+    // getItem("REPORTS", "2", <FileOutlined />, "/report", Report),
     getItem("PRODUCT", "sub1", <TagOutlined />, null, null, [
       getItem("View Product", "4", null, "/view-product", ViewProduct),
       getItem("Add Product", "5", null, "/add-product", AddProduct),
@@ -153,9 +153,9 @@ function App() {
                   <Menu.Item key="1" icon={<PieChartOutlined />}>
                   <Link to="/dashboard">DASHBOARD</Link>
                 </Menu.Item>
-                <Menu.Item key="2" icon={<FileOutlined />}>
+                {/* <Menu.Item key="2" icon={<FileOutlined />}>
                   <Link to="/report">REPORTS</Link>
-                </Menu.Item>
+                </Menu.Item> */}
                 <Menu.SubMenu key="sub1" icon={<TagOutlined />} title="PRODUCT">
                   <Menu.Item key="4">
                     <Link to="/view-product">View Product</Link>

@@ -1,31 +1,35 @@
-import React, { useState ,useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Pagination, Form, Input, Button, Space, Popconfirm, message } from 'antd';
 import { UserOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-
+import moment from 'moment-timezone';
+import Papa from 'papaparse';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 const ViewSupplier = () => {
   // const [dataSource, setDataSource] = useState([
   //   { key: '1', firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com', createdAt: '2023-01-01', updatedAt: '2023-01-02' },
   //   { key: '2', firstName: 'Jane', lastName: 'Doe', email: 'jane.doe@example.com', createdAt: '2023-01-03', updatedAt: '2023-01-04' },
-  //   // Add more rows as needed
   // ]);
-
+  const formatDateToLocal = (dateString) => {
+    return moment(dateString).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
+  };
   const [editKey, setEditKey] = useState(null);
   const [dataSource, setDataSource] = useState([]);
   const [resetDataSource, setResetDataSource] = useState([]);
   const [editedValues, setEditedValues] = useState({});
   const columns = [
     { title: '#', dataIndex: 'id', key: 'id' },
-    { title: 'Supplier Name', dataIndex: 'supplier_name', key: 'supplier_name',render: (text, record) => renderEditableCell(text, record, 'supplier_name') },
+    { title: 'Supplier Name', dataIndex: 'supplier_name', key: 'supplier_name', render: (text, record) => renderEditableCell(text, record, 'supplier_name') },
     { title: 'Supplier Location', dataIndex: 'location', key: 'location', render: (text, record) => renderEditableCell(text, record, 'location') },
     { title: 'Contract Details', dataIndex: 'email', key: 'email', render: (text, record) => renderEditableCell(text, record, 'email') },
-    { 
+    {
       title: 'Product Names',
       dataIndex: 'product_names',
       key: 'product_names'
     },
     { title: 'Created By', dataIndex: 'created_by', key: 'created_by' },
-    { title: 'Created At', dataIndex: 'created_at', key: 'created_at' },
-    { title: 'Updated At', dataIndex: 'updated_at', key: 'updated_at' },
+    { title: 'Created At', dataIndex: 'created_at', key: 'created_at', render: (text) => formatDateToLocal(text) },
+    { title: 'Updated At', dataIndex: 'updated_at', key: 'updated_at', render: (text) => formatDateToLocal(text) },
     {
       title: 'Actions',
       dataIndex: 'actions',
@@ -57,35 +61,9 @@ const ViewSupplier = () => {
     },
   ];
   const fetchProductNames = async (id) => {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:5000/api/products-by-supplier/${encodeURIComponent(id)}`, {
-      method: 'GET',
-      headers: {
-        Authorization: token,
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log(data);
-      return data.join(', '); // Assuming the product names are returned as an array
-    } else {
-      console.error('Failed to fetch product names');
-      return '';
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    return '';
-  }
-};
-
-useEffect(() => {
-  const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
-      console.log(token)
-      const response = await fetch('http://localhost:5000/api/all-suppliers', {
+      const response = await fetch(`http://localhost:5000/api/products-by-supplier/${encodeURIComponent(id)}`, {
         method: 'GET',
         headers: {
           Authorization: token,
@@ -94,25 +72,51 @@ useEffect(() => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log(data)
-        // Fetch product names for each supplier
-        const dataWithKeys = await Promise.all(data.map(async (item) => {
-          const productNames = await fetchProductNames(item.id);
-          return { ...item, key: String(item.id), product_names: productNames };
-        }));
-
-        setDataSource(dataWithKeys);
-        setResetDataSource(dataWithKeys);
+        console.log(data);
+        return data.join(', ');
       } else {
-        console.error('Failed to fetch products');
+        console.error('Failed to fetch product names');
+        return '';
       }
     } catch (error) {
       console.error('Error:', error);
+      return '';
     }
   };
 
-  fetchData();
-}, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        console.log(token)
+        const response = await fetch('http://localhost:5000/api/all-suppliers', {
+          method: 'GET',
+          headers: {
+            Authorization: token,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data)
+          // Fetch product names for each supplier
+          const dataWithKeys = await Promise.all(data.map(async (item) => {
+            const productNames = await fetchProductNames(item.id);
+            return { ...item, key: String(item.id), product_names: productNames };
+          }));
+
+          setDataSource(dataWithKeys);
+          setResetDataSource(dataWithKeys);
+        } else {
+          console.error('Failed to fetch products');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
 
   const [form] = Form.useForm();
@@ -146,27 +150,25 @@ useEffect(() => {
       </div>
     );
   };
-  
-  
-const [searchTerm, setSearchTerm] = useState('');
-const onFinish = values => {
-  const { search } = values;
-  setSearchTerm(search);
 
-  const filteredData = resetDataSource.filter(
-    item =>
-      item.supplier_name.toLowerCase().includes(search.toLowerCase()) ||
-      item.location.toLowerCase().includes(search.toLowerCase()) ||
-      item.email.toLowerCase().includes(search.toLowerCase()) ||
-      item.created_by.toLowerCase().includes(search.toLowerCase())
-  );
-  
-  // Update the state with the filtered data
-  setDataSource(filteredData);
-};
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const onFinish = values => {
+    const { search } = values;
+    setSearchTerm(search);
+
+    const filteredData = resetDataSource.filter(
+      item =>
+        item.supplier_name.toLowerCase().includes(search.toLowerCase()) ||
+        item.location.toLowerCase().includes(search.toLowerCase()) ||
+        item.email.toLowerCase().includes(search.toLowerCase()) ||
+        item.created_by.toLowerCase().includes(search.toLowerCase())
+    );
+
+    setDataSource(filteredData);
+  };
 
   const handleReset = () => {
-    // Reset the data to the original data source
     setDataSource(resetDataSource);
     setSearchTerm('');
   };
@@ -183,12 +185,11 @@ const onFinish = values => {
     try {
       const updatedData = editedValues[id];
       if (!updatedData) {
-        // No changes were made, so simply exit the function
         setEditKey(null);
-        setEditedValues({}); // Reset editedValues state
+        setEditedValues({});
         return;
       }
-  
+
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:5000/api/update-supplier/${id}`, {
         method: 'PUT',
@@ -198,17 +199,15 @@ const onFinish = values => {
         },
         body: JSON.stringify(updatedData),
       });
-  
+
       if (response.ok) {
-        // Successful update, display a success message if needed
         message.success('Supplier updated successfully');
         const updatedDataSource = dataSource.map((item) =>
           item.id === id ? { ...item, ...updatedData } : item
         );
         setDataSource(updatedDataSource);
-        setEditedValues({}); // Reset editedValues state
+        setEditedValues({});
       } else {
-        // Handle error
         console.error('Failed to update supplier:', response.statusText);
         message.error('Failed to update supplier');
       }
@@ -216,18 +215,16 @@ const onFinish = values => {
       console.error('Error updating supplier:', error);
       message.error('Error updating supplier');
     } finally {
-      // Reset edit id after saving or handle as needed
       setEditKey(null);
     }
   };
-  
-  
 
-const handleCancelEdit = () => {
-  // Reset edit key without saving
-  setEditKey(null);
-  setEditedValues({}); // Reset editedValues state
-};
+
+
+  const handleCancelEdit = () => {
+    setEditKey(null);
+    setEditedValues({});
+  };
 
   const handleDelete = async (id) => {
     try {
@@ -238,13 +235,11 @@ const handleCancelEdit = () => {
           Authorization: token,
         },
       });
-  
+
       if (response.ok) {
-        // Successful deletion, update the state to reflect the change
         setDataSource((prevDataSource) => prevDataSource.filter((user) => user.id !== id));
         message.success('Supplier deleted successfully');
       } else {
-        // Handle error
         console.error('Failed to delete supplier:', response.statusText);
         message.error('Failed to delete supplier');
       }
@@ -253,12 +248,67 @@ const handleCancelEdit = () => {
       message.error('Error deleting supplier');
     }
   };
-  
-  
+  const exportCSV = () => {
+    try {
+      const csvData = dataSource.map(row => ({
+        id: row.id,
+        supplier_name: row.supplier_name,
+        location: row.location,
+        email: row.email,
+        product_names: row.product_names,
+        created_by: row.created_by,
+        created_at: formatDateToLocal(row.created_at),
+        updated_at: formatDateToLocal(row.updated_at)
+      }));
+
+      const csv = Papa.unparse(csvData, { header: true });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.download = 'suppliers.csv';
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+    }
+  };
+
+
+
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    const tableColumn = ["ID", "Supplier Name", "Location", "Email", "Product Names", "Created By", "Created At", "Updated At"];
+    const tableRows = dataSource.map(item => [
+      item.id,
+      item.supplier_name,
+      item.location,
+      item.email,
+      item.product_names,
+      item.created_by,
+      formatDateToLocal(item.created_at),
+      formatDateToLocal(item.updated_at)
+    ]);
+
+    doc.text("Suppliers", 14, 15);
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20
+    });
+    doc.save("suppliers.pdf");
+  };
+
+
+
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4 pt-10">List of Users</h1>
+      <h1 className="text-2xl font-bold mb-4 pt-10">List of Suppliers ({dataSource.length})</h1>
 
       <Form
         name="userFilter"
@@ -281,13 +331,24 @@ const handleCancelEdit = () => {
             Reset
           </Button>
         </Form.Item>
+        <Form.Item>
+          <Button danger onClick={exportCSV} type="primary">
+            Export CSV
+          </Button>
+        </Form.Item>
+        <Form.Item>
+          <Button onClick={exportPDF} type="primary">
+            Export PDF
+          </Button>
+        </Form.Item>
+
       </Form>
 
-      <Table dataSource={dataSource} columns={columns} pagination={false} className='overflow-x-auto'/>
+      <Table dataSource={dataSource} columns={columns} pagination={false} className='overflow-x-auto' />
 
-      <div style={{ marginTop: '16px', textAlign: 'right' }}>
+      {/* <div style={{ marginTop: '16px', textAlign: 'right' }}>
         <span>{dataSource.length} SUPPLIER</span>
-      </div>
+      </div> */}
 
       <Pagination
         style={{ marginTop: '16px', textAlign: 'center' }}
