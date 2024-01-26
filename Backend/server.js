@@ -196,7 +196,7 @@ app.post('/api/submit-order', authenticateToken, (req, res) => {
             });
             return;
           }
-          const leadTime = 5;
+          const leadTime = 7;
           const orderId = orderResult.insertId;
           const orderItemsQueries = orderItems.map(item => {
             return new Promise((resolve, reject) => {
