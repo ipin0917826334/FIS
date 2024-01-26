@@ -57,7 +57,7 @@ const Login = ({setUserDetails}) => {
    <div
       className="flex h-screen w-screen bg-white justify-center items-center flex-col"
       style={{
-        backgroundImage: "url('https://dm0qx8t0i9gc9.cloudfront.net/thumbnails/video/BgrICs-NZj4hksnn3/videoblocks-organic-and-natural-mix-of-fruits-on-yellow-background-zoom-out-dolly-4k-footage_suiamf2sx_thumbnail-1080_01.png')",
+        backgroundImage: "url('https://static.vecteezy.com/system/resources/previews/009/422/446/original/fresh-healthy-food-orange-fruit-pastel-color-background-vector.jpg')",
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
       }}
