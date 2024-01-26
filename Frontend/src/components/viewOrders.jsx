@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Table, message, Form, Button } from 'antd';
+import { Table, message, Form, Button, Input } from 'antd';
 import moment from 'moment-timezone';
 import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-
+import { SearchOutlined } from '@ant-design/icons';
 const ViewOrders = () => {
   const [batches, setBatches] = useState([]);
-
+  const [searchTerm, setSearchTerm] = useState('');
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -31,7 +31,15 @@ const ViewOrders = () => {
 
     fetchOrders();
   }, []);
+  const filteredBatches = searchTerm
+    ? Object.entries(batches).filter(([batchNumber]) =>
+      batchNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    : Object.entries(batches);
 
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+  };
   const formatDateToLocal = (dateString) => {
     return moment(dateString).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
   };
@@ -122,12 +130,19 @@ const ViewOrders = () => {
 
   return (
     <>
-      <h1 className="text-2xl font-bold mb-10 pt-10">Delivery List ({Object.keys(batches).length})</h1>
+      <h1 className="text-2xl font-bold mb-10 pt-10">Delivery List ({filteredBatches.length})</h1>
       <Form
-        name="export"
+        name="batchSearch"
         layout="inline"
         style={{ marginBottom: '16px' }}
       >
+        <Form.Item name="search">
+          <Input
+            placeholder="Search by batch"
+            prefix={<SearchOutlined />}
+            onChange={e => handleSearch(e.target.value)}
+          />
+        </Form.Item>
         <Form.Item>
           <Button danger onClick={exportCSV} type="primary">
             Export CSV
@@ -138,10 +153,9 @@ const ViewOrders = () => {
             Export PDF
           </Button>
         </Form.Item>
-
       </Form>
       <div className="container mx-auto px-4">
-        {Object.entries(batches).map(([batchNumber, ordersInBatch]) => (
+        {filteredBatches.map(([batchNumber, ordersInBatch]) => (
           <div key={batchNumber} className="mb-8 p-4 rounded-lg shadow-lg bg-white">
             <h2 className="text-lg font-semibold border-b-2 border-gray-200 pb-2 mb-4">
               Batch #: {batchNumber}
@@ -160,6 +174,7 @@ const ViewOrders = () => {
       </div>
     </>
   );
+  
 };
 
 export default ViewOrders;

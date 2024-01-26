@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Pagination, Form, Input, Button, Space, Popconfirm, message } from 'antd';
-import { UserOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import moment from 'moment-timezone';
 import Papa from 'papaparse';
 import jsPDF from 'jspdf';
@@ -9,7 +9,6 @@ const ViewProduct = () => {
   // const [dataSource, setDataSource] = useState([
   //   { key: '1', firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com', createdAt: '2023-01-01', updatedAt: '2023-01-02' },
   //   { key: '2', firstName: 'Jane', lastName: 'Doe', email: 'jane.doe@example.com', createdAt: '2023-01-03', updatedAt: '2023-01-04' },
-  //   // Add more rows as needed
   // ]);
   const formatDateToLocal = (dateString) => {
     return moment(dateString).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
@@ -281,7 +280,7 @@ const ViewProduct = () => {
         style={{ marginBottom: '16px' }}
       >
         <Form.Item name="search">
-          <Input placeholder="Search" prefix={<UserOutlined />} />
+          <Input placeholder="Search" prefix={<SearchOutlined />} />
         </Form.Item>
 
         <Form.Item>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Pagination, Form, Input, Button, Space, Popconfirm, message } from 'antd';
-import { UserOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import moment from 'moment-timezone';
 import Papa from 'papaparse';
 import jsPDF from 'jspdf';
@@ -263,7 +263,7 @@ const ViewUser = () => {
         style={{ marginBottom: '16px' }}
       >
         <Form.Item name="search">
-          <Input placeholder="Search" prefix={<UserOutlined />} />
+          <Input placeholder="Search" prefix={<SearchOutlined />} />
         </Form.Item>
 
         <Form.Item>
