@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 30, 2024 at 04:51 PM
+-- Generation Time: Jan 30, 2024 at 07:43 PM
 -- Server version: 10.4.25-MariaDB
 -- PHP Version: 8.1.10
 
@@ -89,7 +89,11 @@ CREATE TABLE `order_items` (
   `order_id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
   `quantity` int(11) NOT NULL,
+  `quantity_received` int(11) DEFAULT 0,
   `lead_time` int(11) DEFAULT NULL,
+  `safety_stock` int(11) DEFAULT 0,
+  `reorder_point` int(11) DEFAULT 0,
+  `status` enum('pending','incomplete','complete') DEFAULT 'pending',
   `received_date` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -97,24 +101,24 @@ CREATE TABLE `order_items` (
 -- Dumping data for table `order_items`
 --
 
-INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `lead_time`, `received_date`) VALUES
-(1, 1, 1, 2, 5, NULL),
-(2, 1, 7, 3, 5, NULL),
-(3, 2, 6, 4, 5, NULL),
-(4, 2, 7, 5, 5, NULL),
-(5, 3, 4, 22, 5, NULL),
-(6, 3, 7, 33, 5, NULL),
-(7, 4, 4, 33, 5, '2024-01-30 23:27:36'),
-(8, 4, 7, 1, 5, '2024-01-30 23:27:36'),
-(9, 5, 4, 3, 5, '2024-01-30 23:35:20'),
-(10, 6, 4, 1, 5, '2024-01-31 01:14:56'),
-(11, 7, 6, 22, 5, '2024-01-31 01:26:56'),
-(12, 7, 4, 333, 5, '2024-01-31 01:26:56'),
-(13, 7, 7, 44, 5, '2024-01-31 01:26:56'),
-(14, 8, 1, 22, 7, '2024-02-03 09:52:12'),
-(15, 9, 4, 4, 7, '2024-02-03 12:50:24'),
-(16, 9, 6, 1, 7, '2024-02-03 12:50:24'),
-(17, 10, 1, 3, 7, '2024-02-06 15:39:27');
+INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `quantity_received`, `lead_time`, `safety_stock`, `reorder_point`, `status`, `received_date`) VALUES
+(1, 1, 1, 2, 0, 5, 0, 0, 'pending', NULL),
+(2, 1, 7, 3, 0, 5, 0, 0, 'pending', NULL),
+(3, 2, 6, 4, 0, 5, 0, 0, 'pending', NULL),
+(4, 2, 7, 5, 0, 5, 0, 0, 'pending', NULL),
+(5, 3, 4, 22, 0, 5, 0, 0, 'pending', NULL),
+(6, 3, 7, 33, 0, 5, 0, 0, 'pending', NULL),
+(7, 4, 4, 33, 0, 5, 0, 0, 'pending', '2024-01-30 23:27:36'),
+(8, 4, 7, 1, 0, 5, 0, 0, 'pending', '2024-01-30 23:27:36'),
+(9, 5, 4, 3, 0, 5, 0, 0, 'pending', '2024-01-30 23:35:20'),
+(10, 6, 4, 1, 0, 5, 0, 0, 'pending', '2024-01-31 01:14:56'),
+(11, 7, 6, 22, 0, 5, 0, 0, 'pending', '2024-01-31 01:26:56'),
+(12, 7, 4, 333, 0, 5, 0, 0, 'pending', '2024-01-31 01:26:56'),
+(13, 7, 7, 44, 0, 5, 0, 0, 'pending', '2024-01-31 01:26:56'),
+(14, 8, 1, 22, 0, 7, 0, 0, 'pending', '2024-02-03 09:52:12'),
+(15, 9, 4, 4, 1, 7, 0, 0, 'incomplete', '2024-02-03 12:50:24'),
+(16, 9, 6, 1, 0, 7, 0, 0, 'pending', '2024-02-03 12:50:24'),
+(17, 10, 1, 3, 3, 7, 0, 0, 'complete', '2024-02-06 15:39:27');
 
 -- --------------------------------------------------------
 

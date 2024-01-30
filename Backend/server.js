@@ -170,7 +170,6 @@ app.get('/api/products-count-by-supplier', authenticateToken, (req, res) => {
       console.error('Error fetching products count by supplier:', err);
       res.status(500).json({ error: 'Internal Server Error' });
     } else {
-      // Transform the results to the format expected by the column chart
       const dataForChart = results.map(row => ({
         supplier_name: row.supplier_name,
         product_count: row.product_count
@@ -194,16 +193,68 @@ app.get('/api/order-quantities-by-date', authenticateToken, (req, res) => {
       console.error('Error fetching order quantities by date:', err);
       res.status(500).json({ error: 'Internal Server Error', details: err });
     } else {
-      // Convert the results to the format expected by the frontend
       const formattedResults = results.map(row => ({
-        date: row.date, // The date is already in 'YYYY-MM-DD' format due to the DATE() function in SQL
+        date: row.date,
         quantity: row.quantity
       }));
       res.json(formattedResults);
     }
   });
 });
+app.put('/api/update-order-item/:id', authenticateToken, (req, res) => {
+  const id = req.params.id;
+  const { qty_received } = req.body;
 
+  db.query('SELECT quantity FROM order_items WHERE id = ?', [id], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    const quantityOrdered = results[0].quantity;
+    let status = 'pending';
+
+    if (qty_received >= quantityOrdered) {
+      status = 'complete';
+    } else if (qty_received > 0) {
+      status = 'incomplete';
+    }
+
+    const updateQuery = `
+      UPDATE order_items 
+      SET quantity_received = ?, status = ? 
+      WHERE id = ?;
+    `;
+
+    db.query(updateQuery, [qty_received, status, id], (updateErr, updateResults) => {
+      if (updateErr) {
+        console.error('Error updating order item:', updateErr);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+      res.json({ message: 'Order item updated successfully', status: status });
+    });
+  });
+});
+app.get('/api/order-status-counts', authenticateToken, async (req, res) => {
+  const query = `
+    SELECT status, COUNT(*) AS count
+    FROM order_items
+    GROUP BY status;
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching order status counts:', err);
+      return res.status(500).json({ error: 'Internal Server Error', details: err });
+    }
+
+    const statusCounts = results.reduce((acc, row) => {
+      acc[row.status] = parseInt(row.count, 10);
+      return acc;
+    }, {});
+
+    res.json(statusCounts);
+  });
+});
 function generateBatchNumber() {
   const date = new Date();
   const year = date.getFullYear();
@@ -290,6 +341,11 @@ app.get('/api/orders-by-batch', authenticateToken, async (req, res) => {
           order_items.received_date AS received_date,
           order_items.product_id,
           order_items.quantity,
+          order_items.safety_stock,
+          order_items.status,
+          order_items.reorder_point,
+          order_items.quantity_received,
+          order_items.id,
           products.product_name,
           CONCAT(users.first_name, ' ', users.last_name) AS ordered_by,
           suppliers.supplier_name  AS supplier,
