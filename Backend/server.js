@@ -157,6 +157,53 @@ app.get('/api/all-products', authenticateToken, (req, res) => {
     }
   });
 });
+app.get('/api/products-count-by-supplier', authenticateToken, (req, res) => {
+  const query = `
+    SELECT s.supplier_name, COUNT(p.id) as product_count
+    FROM suppliers s
+    LEFT JOIN products p ON s.id = p.supplier_id
+    GROUP BY s.id
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching products count by supplier:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      // Transform the results to the format expected by the column chart
+      const dataForChart = results.map(row => ({
+        supplier_name: row.supplier_name,
+        product_count: row.product_count
+      }));
+
+      res.status(200).json(dataForChart);
+    }
+  });
+});
+app.get('/api/order-quantities-by-date', authenticateToken, (req, res) => {
+  const query = `
+    SELECT DATE(orders.created_at) AS date, SUM(order_items.quantity) AS quantity
+    FROM orders
+    JOIN order_items ON orders.id = order_items.order_id
+    GROUP BY DATE(orders.created_at)
+    ORDER BY DATE(orders.created_at);
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching order quantities by date:', err);
+      res.status(500).json({ error: 'Internal Server Error', details: err });
+    } else {
+      // Convert the results to the format expected by the frontend
+      const formattedResults = results.map(row => ({
+        date: row.date, // The date is already in 'YYYY-MM-DD' format due to the DATE() function in SQL
+        quantity: row.quantity
+      }));
+      res.json(formattedResults);
+    }
+  });
+});
+
 function generateBatchNumber() {
   const date = new Date();
   const year = date.getFullYear();

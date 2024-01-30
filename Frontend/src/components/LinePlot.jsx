@@ -1,77 +1,89 @@
-import { Line } from '@ant-design/plots';
-
+import React, { useState, useEffect } from 'react';
+import { Line } from 'react-chartjs-2';
+import 'chart.js/auto';
+import moment from 'moment-timezone';
 const LinePlot = () => {
-  const data = [
-    {
-      year: '1991',
-      value: 3,
-    },
-    {
-      year: '1992',
-      value: 4,
-    },
-    {
-      year: '1993',
-      value: 3.5,
-    },
-    {
-      year: '1994',
-      value: 5,
-    },
-    {
-      year: '1995',
-      value: 4.9,
-    },
-    {
-      year: '1996',
-      value: 6,
-    },
-    {
-      year: '1997',
-      value: 7,
-    },
-    {
-      year: '1998',
-      value: 9,
-    },
-    {
-      year: '1999',
-      value: 13,
-    },
-  ];
-  const config = {
-    data,
-    xField: 'year',
-    yField: 'value',
-    label: {},
-    point: {
-      size: 5,
-      shape: 'diamond',
-      style: {
-        fill: 'white',
-        stroke: '#5B8FF9',
-        lineWidth: 2,
-      },
-    },
-    tooltip: {
-      showMarkers: false,
-    },
-    state: {
-      active: {
-        style: {
-          shadowBlur: 4,
-          stroke: '#000',
-          fill: 'red',
-        },
-      },
-    },
-    interactions: [
-      {
-        type: 'marker-active',
-      },
-    ],
+  const [chartData, setChartData] = useState({
+    datasets: [],
+  });
+  const [chartOptions, setChartOptions] = useState({});
+  const formatDateToLocal = (dateString) => {
+    return moment(dateString).tz('Asia/Bangkok').format('YYYY-MM-DD');
   };
-  return <Line {...config} />;
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    fetch('http://localhost:5000/api/order-quantities-by-date', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token,
+      },
+    })
+      .then(response => response.json())
+      .then(data => {
+        const labels = data.map(item => formatDateToLocal(item.date));
+        const quantities = data.map(item => item.quantity);
+
+        setChartData({
+          labels: labels,
+          datasets: [{
+            label: 'Product Delivered',
+            data: quantities,
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1,
+          }],
+        });
+
+        setChartOptions({
+          responsive: true,
+          maintainAspectRatio: false,
+          aspectRatio: 2,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Delivery History Per Day',
+              font: {
+                size: 26
+              },
+            },
+            legend: {
+              display: true,
+              position: 'top',
+            },
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Date',
+                font: {
+                  size: 24
+                }
+              },
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Product Delivered',
+                font: {
+                  size: 24
+                }
+              },
+            },
+          },
+        });
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  }, []);
+
+  return (
+    <div className='flex justify-center w-full py-10'>
+      <div style={{ width: '80%', minHeight: '400px' }}>
+        <Line data={chartData} options={chartOptions} />
+      </div>
+    </div>
+  );
 };
 
 export default LinePlot;

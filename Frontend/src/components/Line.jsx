@@ -1,69 +1,98 @@
-import { Column } from '@ant-design/plots';
+import React, { useState, useEffect } from 'react';
+import { Bar } from 'react-chartjs-2';
+import 'chart.js/auto';
 
-const LineChart = () => {
-  const data = [
-    {
-      type: '家具家电',
-      sales: 38,
-    },
-    {
-      type: '粮油副食',
-      sales: 52,
-    },
-    {
-      type: '生鲜水果',
-      sales: 61,
-    },
-    {
-      type: '美容洗护',
-      sales: 145,
-    },
-    {
-      type: '母婴用品',
-      sales: 48,
-    },
-    {
-      type: '进口食品',
-      sales: 38,
-    },
-    {
-      type: '食品饮料',
-      sales: 38,
-    },
-    {
-      type: '家庭清洁',
-      sales: 38,
-    },
-  ];
-  const config = {
-    data,
-    xField: 'type',
-    yField: 'sales',
-    label: {
-      // 可手动配置 label 数据标签位置
-      position: 'middle',
-      // 'top', 'bottom', 'middle',
-      // 配置样式
-      style: {
-        fill: '#FFFFFF',
-        opacity: 0.6,
+const ColumnChart = () => {
+  const [chartData, setChartData] = useState({
+    datasets: [],
+  });
+  const [chartOptions, setChartOptions] = useState({});
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    fetch('http://localhost:5000/api/products-count-by-supplier', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token,
       },
-    },
-    xAxis: {
-      label: {
-        autoHide: true,
-        autoRotate: false,
-      },
-    },
-    meta: {
-      type: {
-        alias: '类别',
-      },
-      sales: {
-        alias: '销售额',
-      },
-    },
-  };
-  return <Column {...config} />;
+    })
+    .then(response => response.json())
+    .then(data => {
+      const labels = data.map(item => item.supplier_name);
+      const counts = data.map(item => item.product_count);
+
+      setChartData({
+        labels: labels,
+        datasets: [
+          {
+            label: 'Product Count',
+            data: counts,
+            backgroundColor: 'rgba(53, 162, 235, 0.5)',
+            maxBarThickness: 40,
+          },
+        ],
+      });
+
+      setChartOptions({
+        responsive: true,
+        maintainAspectRatio: false,
+        aspectRatio: 2,
+        plugins: {
+          title: {
+            display: true,
+            font: {
+              size: 26
+            },
+            text: 'Product Count Assigned To Supplier',
+          },
+          legend: {
+            display: false,
+          },
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Suppliers',
+              font: {
+                size: 24 
+              }
+            },
+            ticks: {
+              font: {
+                size: 14
+              }
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Product Count',
+              font: {
+                size: 24
+              }
+            },
+            ticks: {
+              font: {
+                size: 14
+              }
+            }
+          }
+        }
+      });
+    })
+    .catch(error => console.error('Error fetching data:', error));
+  }, []);
+
+  return (
+    <div className='flex justify-center w-full py-10'>
+    <div style={{ width: '100%', minHeight: '500px' }}>
+      <Bar options={chartOptions} data={chartData} />
+    </div>
+  </div>
+  
+  );
 };
-export default LineChart;
+
+export default ColumnChart;
