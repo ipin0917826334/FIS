@@ -28,6 +28,7 @@ import ViewSafetyStock from "./components/viewSafetyStock";
 import ViewSupplier from "./components/viewSupplier";
 import ViewUser from "./components/viewUser";
 import Sale from "./components/Sale";
+import Predict from "./components/predict";
 import type { MenuProps } from "antd";
 
 const { Header, Sider, Content } = Layout;
@@ -77,6 +78,7 @@ function App() {
   }, [navigate]);
   const items: MenuItem[] = [
     getItem("DASHBOARD", "1", <PieChartOutlined />, "/dashboard", DashBoard),
+    getItem("PREDICT", "2", <PieChartOutlined />, "/predict", Predict),
     // getItem("REPORTS", "2", <FileOutlined />, "/report", Report),
     getItem("PRODUCT", "sub1", <TagOutlined />, null, null, [
       getItem("View Product", "4", null, "/view-product", ViewProduct),
@@ -153,9 +155,9 @@ function App() {
                   <Menu.Item key="1" icon={<PieChartOutlined />}>
                   <Link to="/dashboard">DASHBOARD</Link>
                 </Menu.Item>
-                {/* <Menu.Item key="2" icon={<FileOutlined />}>
-                  <Link to="/report">REPORTS</Link>
-                </Menu.Item> */}
+                <Menu.Item key="2" icon={<FileOutlined />}>
+                  <Link to="/predict">PREDICT</Link>
+                </Menu.Item>
                 <Menu.SubMenu key="sub1" icon={<TagOutlined />} title="PRODUCT">
                   <Menu.Item key="4">
                     <Link to="/view-product">View Product</Link>

@@ -82,7 +82,7 @@ const AddSupplier = ({ userDetails }) => {
         onCancel={() => setIsModalVisible(false)}
         footer={null} 
       >
-        <p>The user has been added successfully!</p>
+        <p>The Supplier has been added successfully!</p>
       </Modal>
     </div>
   );
