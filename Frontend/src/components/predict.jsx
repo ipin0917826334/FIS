@@ -65,7 +65,7 @@ const Predict = () => {
                     name="forecast_year"
                     rules={[{ required: true, message: 'Please input the year!' }]}
                 >
-                    <Input placeholder="Year" type="number" />
+                    <Input placeholder="e.g. 2024" type="number" />
                 </Form.Item>
 
                 <Form.Item
@@ -73,7 +73,7 @@ const Predict = () => {
                     name="forecast_month"
                     rules={[{ required: true, message: 'Please input the month!' }]}
                 >
-                    <Input placeholder="Month" type="number" />
+                    <Input placeholder="Input 1-12" type="number" />
                 </Form.Item>
 
                 <Form.Item>

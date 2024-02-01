@@ -201,39 +201,99 @@ app.get('/api/order-quantities-by-date', authenticateToken, (req, res) => {
     }
   });
 });
-app.put('/api/update-order-item/:id', authenticateToken, (req, res) => {
+app.put('/api/update-order-item/:id', authenticateToken, async (req, res) => {
   const id = req.params.id;
   const { qty_received } = req.body;
 
-  db.query('SELECT quantity FROM order_items WHERE id = ?', [id], (err, results) => {
+  db.beginTransaction(async err => {
     if (err) {
+      console.error('Error starting transaction:', err);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
 
-    const quantityOrdered = results[0].quantity;
-    let status = 'pending';
+    try {
+      const orderItemQuery = 'SELECT quantity, quantity_received, product_id FROM order_items WHERE id = ?';
+      const orderItemResults = await new Promise((resolve, reject) => {
+        db.query(orderItemQuery, [id], (err, results) => {
+          if (err) reject(err);
+          else resolve(results[0]);
+        });
+      });
 
-    if (qty_received >= quantityOrdered) {
-      status = 'complete';
-    } else if (qty_received > 0) {
-      status = 'incomplete';
-    }
+      const productId = orderItemResults.product_id;
+      const previousQuantityReceived = orderItemResults.quantity_received;
+      const quantityOrdered = orderItemResults.quantity;
+      const quantityDelivered = qty_received - previousQuantityReceived;
 
-    const updateQuery = `
-      UPDATE order_items 
-      SET quantity_received = ?, status = ? 
-      WHERE id = ?;
-    `;
+      const historyQuery = 'INSERT INTO order_items_history (order_item_id, previous_quantity_received, new_quantity_received, quantity_delivered, received_date) VALUES (?, ?, ?, ?, NOW())';
+      await new Promise((resolve, reject) => {
+        db.query(historyQuery, [id, previousQuantityReceived, qty_received, quantityDelivered], (err, results) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
 
-    db.query(updateQuery, [qty_received, status, id], (updateErr, updateResults) => {
-      if (updateErr) {
-        console.error('Error updating order item:', updateErr);
-        return res.status(500).json({ error: 'Internal Server Error' });
+      const updateStockQuery = 'UPDATE products SET product_stock = product_stock + ? WHERE id = ?';
+      await new Promise((resolve, reject) => {
+        db.query(updateStockQuery, [quantityDelivered, productId], (err, results) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      let status;
+      if (qty_received >= quantityOrdered) {
+        status = 'complete';
+      } else if (qty_received > 0) {
+        status = 'incomplete';
+      } else {
+        status = 'pending';
       }
-      res.json({ message: 'Order item updated successfully', status: status });
-    });
+
+      const updateOrderItemQuery = 'UPDATE order_items SET quantity_received = ?, status = ? WHERE id = ?';
+      await new Promise((resolve, reject) => {
+        db.query(updateOrderItemQuery, [qty_received, status, id], (err, results) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      db.commit(err => {
+        if (err) {
+          console.error('Error committing transaction:', err);
+          db.rollback(() => {
+            res.status(500).json({ error: 'Internal Server Error' });
+          });
+          return;
+        }
+        res.json({ message: 'Order item updated successfully', status: status });
+      });
+    } catch (error) {
+      console.error('Error during update:', error);
+      db.rollback(() => {
+        res.status(500).json({ error: 'Internal Server Error' });
+      });
+    }
   });
 });
+
+
+app.get('/api/order-items-history/:itemId', authenticateToken, async (req, res) => {
+  const itemId = req.params.itemId;
+  const query = `
+    SELECT * FROM order_items_history
+    WHERE order_item_id = ?
+    ORDER BY received_date DESC
+  `;
+  db.query(query, [itemId], (err, results) => {
+    if (err) {
+      console.error('Error fetching order items history:', err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+    res.status(200).json(results);
+  });
+});
+
 app.get('/api/order-status-counts', authenticateToken, async (req, res) => {
   const query = `
     SELECT status, COUNT(*) AS count

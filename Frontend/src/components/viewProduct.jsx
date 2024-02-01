@@ -175,12 +175,12 @@ const ViewProduct = () => {
         setDataSource(updatedDataSource);
         setEditedValues({});
       } else {
-        console.error('Failed to update user:', response.statusText);
-        message.error('Failed to update user');
+        console.error('Failed to update product:', response.statusText);
+        message.error('Failed to update product');
       }
     } catch (error) {
-      console.error('Error updating user:', error);
-      message.error('Error updating user');
+      console.error('Error updating product:', error);
+      message.error('Error updating product');
     } finally {
       setEditKey(null);
     }
@@ -205,14 +205,14 @@ const ViewProduct = () => {
 
       if (response.ok) {
         setDataSource((prevDataSource) => prevDataSource.filter((user) => user.id !== id));
-        message.success('User deleted successfully');
+        message.success('Product deleted successfully');
       } else {
-        console.error('Failed to delete user:', response.statusText);
-        message.error('Failed to delete user');
+        console.error('Failed to delete product:', response.statusText);
+        message.error('Failed to delete product because it use this product in orders');
       }
     } catch (error) {
-      console.error('Error deleting user:', error);
-      message.error('Error deleting user');
+      console.error('Error deleting product:', error);
+      message.error('Error deleting product');
     }
   };
   const exportCSV = () => {

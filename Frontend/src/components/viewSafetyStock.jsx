@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, message, Form, Button, Input } from 'antd';
+import { Table, message, Form, Button, Input, Modal } from 'antd';
 import moment from 'moment-timezone';
 import Papa from 'papaparse';
 import jsPDF from 'jspdf';
@@ -11,6 +11,36 @@ const ViewSafetyStock = () => {
   const [editKey, setEditKey] = useState(null);
   const [editedValues, setEditedValues] = useState({});
   const [status, setStatus] = useState();
+  const [deliveryHistory, setDeliveryHistory] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [currentRecordId, setCurrentRecordId] = useState(null);
+  const fetchDeliveryHistory = async (itemId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/order-items-history/${itemId}`, {
+        headers: {
+          'Authorization': token,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setDeliveryHistory(data);
+      } else {
+        message.error('Failed to fetch delivery history');
+      }
+    } catch (error) {
+      console.error('Error fetching delivery history:', error);
+      message.error('An error occurred while fetching delivery history');
+    }
+  };
+  
+  const handleShowDeliveryHistory = (itemId) => {
+    setCurrentRecordId(itemId);
+    fetchDeliveryHistory(itemId);
+    setIsModalVisible(true);
+  };
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -31,10 +61,10 @@ const ViewSafetyStock = () => {
         message.error('An error occurred while fetching orders');
       }
     };
-  
+
     fetchOrders();
   }, []);
-  
+
 
 
   const updateOrderItem = async (itemId, qtyReceived) => {
@@ -48,11 +78,11 @@ const ViewSafetyStock = () => {
         },
         body: JSON.stringify({ qty_received: qtyReceived }),
       });
-  
+
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-  
+
       const data = await response.json();
       setStatus(data.status);
       return { qtyReceived: qtyReceived, status: data.status };
@@ -62,10 +92,10 @@ const ViewSafetyStock = () => {
       throw error;
     }
   };
-  
+
   const handleEdit = (record) => {
     setEditKey(record.id);
-    setEditedValues({ ...editedValues, [record.id]: record.quantity_received }); 
+    setEditedValues({ ...editedValues, [record.id]: record.quantity_received });
   };
 
 
@@ -76,10 +106,25 @@ const ViewSafetyStock = () => {
   };
 
   const handleSave = async (record) => {
+    const currentQtyReceived = record.quantity_received;
     const updatedQtyReceived = editedValues[record.id];
+
+    const currentQtyNum = parseInt(currentQtyReceived, 10);
+    const updatedQtyNum = parseInt(updatedQtyReceived, 10);
+
+    if (updatedQtyNum === currentQtyNum) {
+      message.info('No changes detected. No update needed.');
+      return;
+    }
+
+    if (updatedQtyNum < currentQtyNum) {
+      message.error('Quantity received cannot decrease. Please enter a value greater than current quantity.');
+      return;
+    }
+
     try {
-      const { qtyReceived, status } = await updateOrderItem(record.id, updatedQtyReceived);
-      
+      const { qtyReceived, status } = await updateOrderItem(record.id, updatedQtyNum);
+
       const newBatches = { ...batches };
       for (const [batchNumber, orders] of Object.entries(newBatches)) {
         orders.forEach(order => {
@@ -89,15 +134,19 @@ const ViewSafetyStock = () => {
           }
         });
       }
-  
+
       setBatches(newBatches);
-  
+
       setEditKey(null);
       setEditedValues({});
       message.success('Order item updated successfully');
     } catch (error) {
+      console.error('Error updating order item:', error);
+      message.error('Failed to update order item');
     }
   };
+
+
 
   const filteredBatches = searchTerm
     ? Object.entries(batches).filter(([batchNumber]) =>
@@ -125,6 +174,39 @@ const ViewSafetyStock = () => {
     }
     updateOrderItem(record.id, qtyReceived, record.status);
   };
+  const statusStyles = {
+    complete: {
+      backgroundColor: '#88AB8D',
+      color: 'white',
+      padding: '6px',
+      borderRadius: '6px',
+      textAlign: 'center',
+    },
+    incomplete: {
+      backgroundColor: '#ff4d4f',
+      color: 'white',
+      padding: '6px',
+      borderRadius: '6px',
+      textAlign: 'center',
+    },
+    pending: {
+      backgroundColor: 'gray',
+      color: 'white',
+      padding: '6px',
+      borderRadius: '6px',
+      textAlign: 'center',
+    },
+  };
+  
+  const getStatusStyle = (status) => {
+    return statusStyles[status] || {};
+  };
+  const deliveryHistoryColumns = [
+    { title: 'Previous Quantity Received', dataIndex: 'previous_quantity_received', key: 'previous_quantity_received' },
+    { title: 'New Quantity Received', dataIndex: 'new_quantity_received', key: 'new_quantity_received' },
+    { title: 'Quantity Delivered', dataIndex: 'quantity_delivered', key: 'quantity_delivered' },
+    { title: 'Received Date', dataIndex: 'received_date', key: 'received_date', render: (text) => formatDateToLocal(text) },
+  ];
   const columns = [
     { title: 'Product', dataIndex: 'product_name', key: 'product_name' },
     { title: 'Qty_Orders', dataIndex: 'quantity', key: 'quantity' },
@@ -164,6 +246,11 @@ const ViewSafetyStock = () => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      render: (status) => (
+        <div style={getStatusStyle(status)}>
+          {status.charAt(0).toUpperCase() + status.slice(1)}
+        </div>
+      ),
     },
     { title: 'Ordered By', dataIndex: 'ordered_by', key: 'ordered_by' },
     {
@@ -173,12 +260,26 @@ const ViewSafetyStock = () => {
       render: (text) => formatDateToLocal(text),
     },
     {
+      title: 'Delivery History',
+      dataIndex: 'id', // Assuming `id` is the unique identifier for each order item
+      key: 'deliveryHistory',
+      render: (text, record) => (
+        <Button
+          ghost
+          onClick={() => handleShowDeliveryHistory(record.id)}
+          style={{color:"gray", borderColor:"gray"}}
+        >
+         Deliveries
+        </Button>
+      ),
+    },
+    {
       title: 'Action',
       key: 'action',
       render: (_, record) => {
         const isEditing = editKey === record.id;
         return isEditing ? (
-          <span>
+          <span className='flex flex-nowrap'>
             <Button onClick={() => handleSave(record)} style={{ marginRight: 8 }}>
               Save
             </Button>
@@ -304,7 +405,22 @@ const ViewSafetyStock = () => {
           </div>
         ))}
       </div>
-
+      <Modal
+      title="Delivery History"
+      visible={isModalVisible}
+      onOk={() => setIsModalVisible(false)}
+      onCancel={() => setIsModalVisible(false)}
+      footer={[
+       <></>
+      ]}
+    >
+      <Table
+        dataSource={deliveryHistory}
+        columns={deliveryHistoryColumns}
+        pagination={false}
+        className="min-w-full overflow-x-auto"
+      />
+    </Modal>
     </>
   );
 

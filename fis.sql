@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 30, 2024 at 07:43 PM
+-- Generation Time: Feb 01, 2024 at 08:22 PM
 -- Server version: 10.4.25-MariaDB
 -- PHP Version: 8.1.10
 
@@ -47,7 +47,11 @@ INSERT INTO `batches` (`id`, `batch_number`, `created_at`) VALUES
 (9, 'BATCH-20240126-2B3YL7', '2024-01-26 01:26:56'),
 (10, 'BATCH-20240127-7JRML2', '2024-01-27 09:52:12'),
 (11, 'BATCH-20240127-HC0QLF', '2024-01-27 12:50:24'),
-(12, 'BATCH-20240130-OW8TD8', '2024-01-30 15:39:27');
+(12, 'BATCH-20240130-OW8TD8', '2024-01-30 15:39:27'),
+(13, 'BATCH-20240131-7IMVLA', '2024-01-30 18:47:28'),
+(14, 'BATCH-20240131-TF06XE', '2024-01-31 15:04:13'),
+(15, 'BATCH-20240202-GOC2X2', '2024-02-01 18:43:55'),
+(16, 'BATCH-20240202-RF6SDM', '2024-02-01 18:57:57');
 
 -- --------------------------------------------------------
 
@@ -76,7 +80,11 @@ INSERT INTO `orders` (`id`, `batch_id`, `ordered_by_user_id`, `created_at`) VALU
 (7, 9, 1, '2024-01-26 01:26:56'),
 (8, 10, 1, '2024-01-27 09:52:12'),
 (9, 11, 1, '2024-01-27 12:50:24'),
-(10, 12, 1, '2024-01-30 15:39:27');
+(10, 12, 1, '2024-01-30 15:39:27'),
+(11, 13, 1, '2024-01-30 18:47:28'),
+(12, 14, 1, '2024-01-31 15:04:13'),
+(13, 15, 1, '2024-02-01 18:43:55'),
+(14, 16, 1, '2024-02-01 18:57:57');
 
 -- --------------------------------------------------------
 
@@ -117,8 +125,50 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `quantity
 (13, 7, 7, 44, 0, 5, 0, 0, 'pending', '2024-01-31 01:26:56'),
 (14, 8, 1, 22, 0, 7, 0, 0, 'pending', '2024-02-03 09:52:12'),
 (15, 9, 4, 4, 1, 7, 0, 0, 'incomplete', '2024-02-03 12:50:24'),
-(16, 9, 6, 1, 0, 7, 0, 0, 'pending', '2024-02-03 12:50:24'),
-(17, 10, 1, 3, 3, 7, 0, 0, 'complete', '2024-02-06 15:39:27');
+(16, 9, 6, 1, 1, 7, 0, 0, 'complete', '2024-02-03 12:50:24'),
+(17, 10, 1, 3, 3, 7, 0, 0, 'complete', '2024-02-06 15:39:27'),
+(18, 11, 1, 2, 2, 7, 0, 0, 'complete', '2024-02-06 18:47:28'),
+(19, 12, 4, 22, 22, 7, 0, 0, 'complete', '2024-02-07 15:04:13'),
+(20, 12, 6, 44, 18, 7, 0, 0, 'incomplete', '2024-02-07 15:04:13'),
+(21, 13, 13, 20, 3, 7, 0, 0, 'incomplete', '2024-02-08 18:43:55'),
+(22, 14, 15, 20, 11, 7, 0, 0, 'incomplete', '2024-02-08 18:57:57');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `order_items_history`
+--
+
+CREATE TABLE `order_items_history` (
+  `id` int(11) NOT NULL,
+  `order_item_id` int(11) NOT NULL,
+  `previous_quantity_received` int(11) DEFAULT NULL,
+  `new_quantity_received` int(11) NOT NULL,
+  `quantity_delivered` int(11) NOT NULL,
+  `received_date` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `order_items_history`
+--
+
+INSERT INTO `order_items_history` (`id`, `order_item_id`, `previous_quantity_received`, `new_quantity_received`, `quantity_delivered`, `received_date`) VALUES
+(1, 20, 0, 3, 3, '2024-02-01 17:37:03'),
+(2, 20, 3, 5, 2, '2024-02-01 17:37:51'),
+(3, 20, 5, 5, 0, '2024-02-01 17:41:46'),
+(4, 20, 5, 6, 1, '2024-02-01 17:45:16'),
+(5, 18, 1, 2, 1, '2024-02-01 17:53:49'),
+(6, 16, 0, 1, 1, '2024-02-01 18:10:15'),
+(7, 20, 6, 9, 3, '2024-02-01 18:17:28'),
+(8, 20, 9, 10, 1, '2024-02-01 18:22:33'),
+(9, 20, 10, 11, 1, '2024-02-01 18:25:45'),
+(10, 20, 11, 16, 5, '2024-02-01 18:26:18'),
+(11, 20, 16, 17, 1, '2024-02-01 18:40:34'),
+(12, 20, 17, 18, 1, '2024-02-01 18:41:09'),
+(13, 21, 0, 2, 2, '2024-02-01 18:44:08'),
+(14, 21, 2, 3, 1, '2024-02-01 18:44:39'),
+(15, 22, 0, 10, 10, '2024-02-01 18:58:16'),
+(16, 22, 10, 11, 1, '2024-02-01 18:58:50');
 
 -- --------------------------------------------------------
 
@@ -146,10 +196,12 @@ CREATE TABLE `products` (
 INSERT INTO `products` (`id`, `product_name`, `product_stock`, `description`, `price`, `product_image`, `supplier_id`, `user_id`, `created_at`, `updated_at`) VALUES
 (1, 'aaa1', 0, 'aaa1', '0.00', '1703346471724-411753457_766501121973257_6668745352510327091_n.jpg', 5, 1, '2023-12-23 15:47:51', '2024-01-25 17:40:46'),
 (4, 'ssss1', 391, 'sdcvv', '0.00', '1703347623247-R.png', 5, 1, '2023-12-23 16:07:03', '2024-01-27 12:53:40'),
-(6, 'ssdsd', 95, 'aaaaa1', '0.00', '1703355294518-R.png', 5, 1, '2023-12-23 18:14:54', '2024-01-27 12:53:40'),
+(6, 'ssdsd', 102, 'aaaaa1', '0.00', '1703355294518-R.png', 5, 1, '2023-12-23 18:14:54', '2024-02-01 18:41:09'),
 (7, '123123', 65, '123123', '50.00', '1703427662239-online-voting-tablet.jpg', 6, 1, '2023-12-24 14:21:02', '2024-01-25 17:56:48'),
 (8, '123123', 181, '123123', '20.00', '1703705391359-online-voting-tablet.jpg', 6, 1, '2023-12-27 19:29:51', '2024-01-25 15:46:24'),
-(12, '213123', 22, '231', '12.00', '1706204584654-online-voting-tablet.jpg', 5, 12, '2024-01-25 17:43:04', '2024-01-25 17:48:08');
+(12, '213123', 22, '231', '12.00', '1706204584654-online-voting-tablet.jpg', 5, 12, '2024-01-25 17:43:04', '2024-01-25 17:48:08'),
+(13, 'orange1', 3, '1223', '20.00', '1706813018159-Pita_Limjaroenrat_.jpg', 5, 1, '2024-02-01 18:43:38', '2024-02-01 18:49:26'),
+(15, 'orange', 11, '1234', '20.00', '1706813859901-product-packshot-Orange-558x600.jpg', 5, 1, '2024-02-01 18:57:39', '2024-02-01 18:58:50');
 
 -- --------------------------------------------------------
 
@@ -228,6 +280,13 @@ ALTER TABLE `order_items`
   ADD KEY `product_id` (`product_id`);
 
 --
+-- Indexes for table `order_items_history`
+--
+ALTER TABLE `order_items_history`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_item_id` (`order_item_id`);
+
+--
 -- Indexes for table `products`
 --
 ALTER TABLE `products`
@@ -258,25 +317,31 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `batches`
 --
 ALTER TABLE `batches`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+
+--
+-- AUTO_INCREMENT for table `order_items_history`
+--
+ALTER TABLE `order_items_history`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `suppliers`
@@ -307,6 +372,12 @@ ALTER TABLE `orders`
 ALTER TABLE `order_items`
   ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`),
   ADD CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);
+
+--
+-- Constraints for table `order_items_history`
+--
+ALTER TABLE `order_items_history`
+  ADD CONSTRAINT `order_items_history_ibfk_1` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`);
 
 --
 -- Constraints for table `products`

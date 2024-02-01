@@ -111,13 +111,13 @@ button.ant-btn {
   font-weight: 500;
   font-family: inherit;
   background-color: #88AB8D; 
-  color: #fff; /* Set your desired text color */
+  color: #fff;
   cursor: pointer;
   transition: border-color 0.25s;
 }
 
 button.ant-btn:hover {
-  border-color: #646cff; /* Set your desired border color on hover */
+  border-color: #646cff;
 }
 
 button.ant-btn:focus,
@@ -130,8 +130,11 @@ button.ant-btn:focus-visible {
 }
 
 .badge-container {
-  margin-left: 16px; /* Adjust the margin as needed */
+  margin-left: 16px;
 }
 /* .btn_pdf {
   background-color: '#00b96b' !important;
 } */
+td.ant-table-cell{
+  background-color: #f2f1ec;
+}
