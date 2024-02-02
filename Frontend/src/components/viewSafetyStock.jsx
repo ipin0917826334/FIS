@@ -277,7 +277,7 @@ const ViewSafetyStock = () => {
   };
   const exportPDF = () => {
     const doc = new jsPDF();
-    const tableColumn = ["Product", "Demand", "Leadtime (Day)", "Received Date", "Supplier", "Ordered By", "Created Date"];
+    const tableColumn = ["Product", "Demand", "Leadtime (Day)", "Safetystock", "Reorderpoint", "Supplier", "Status", "Ordered By", "Created Date"];
 
     let startY = 20;
 
@@ -290,8 +290,10 @@ const ViewSafetyStock = () => {
         order.product_name,
         order.quantity,
         order.lead_time,
-        formatDateToLocalDateOnly(order.received_date),
+        order.safety_stock,
+        order.reorder_point,
         order.supplier,
+        order.status,
         order.ordered_by,
         formatDateToLocal(order.created_at)
       ]);
