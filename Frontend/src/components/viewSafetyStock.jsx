@@ -20,7 +20,7 @@ const ViewSafetyStock = () => {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/orders-by-batch', {
+      const response = await fetch('http://localhost:5002/api/orders-by-batch', {
         headers: {
           Authorization: token,
         },
@@ -39,7 +39,7 @@ const ViewSafetyStock = () => {
   const fetchDeliveryHistory = async (itemId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/order-items-history/${itemId}`, {
+      const response = await fetch(`http://localhost:5002/api/order-items-history/${itemId}`, {
         headers: {
           'Authorization': token,
         },
@@ -119,7 +119,7 @@ const ViewSafetyStock = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/add-delivery/${currentRecordId}`, {
+      const response = await fetch(`http://localhost:5002/api/add-delivery/${currentRecordId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

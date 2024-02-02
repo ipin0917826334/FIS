@@ -63,7 +63,7 @@ const ViewSupplier = () => {
   const fetchProductNames = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/products-by-supplier/${encodeURIComponent(id)}`, {
+      const response = await fetch(`http://localhost:5002/api/products-by-supplier/${encodeURIComponent(id)}`, {
         method: 'GET',
         headers: {
           Authorization: token,
@@ -89,7 +89,7 @@ const ViewSupplier = () => {
       try {
         const token = localStorage.getItem('token');
         console.log(token)
-        const response = await fetch('http://localhost:5000/api/all-suppliers', {
+        const response = await fetch('http://localhost:5002/api/all-suppliers', {
           method: 'GET',
           headers: {
             Authorization: token,
@@ -191,7 +191,7 @@ const ViewSupplier = () => {
       }
 
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/update-supplier/${id}`, {
+      const response = await fetch(`http://localhost:5002/api/update-supplier/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -229,7 +229,7 @@ const ViewSupplier = () => {
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/delete-supplier/${id}`, {
+      const response = await fetch(`http://localhost:5002/api/delete-supplier/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: token,

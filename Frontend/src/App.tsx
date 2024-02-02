@@ -106,7 +106,7 @@ function App() {
   };
   const fetchUserDetails = async (token) => {
     try {
-      const response = await fetch("http://localhost:5000/api/user-details", {
+      const response = await fetch("http://localhost:5002/api/user-details", {
         method: "GET",
         headers: {
           Authorization: `${token}`,

@@ -10,7 +10,7 @@ const CreateOrder = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   useEffect(() => {
     const fetchProducts = async () => {
-      const response = await fetch('http://localhost:5000/api/all-products', {
+      const response = await fetch('http://localhost:5002/api/all-products', {
         headers: {
           Authorization: token,
         },
@@ -53,7 +53,7 @@ const CreateOrder = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/submit-order', {
+      const response = await fetch('http://localhost:5002/api/submit-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

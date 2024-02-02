@@ -10,7 +10,7 @@ const Login = ({setUserDetails}) => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch('http://localhost:5002/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -23,7 +23,7 @@ const Login = ({setUserDetails}) => {
         localStorage.setItem('token', data.token);
         console.log(data.token)
         // Fetch user details after successful login
-        const userDetailsResponse = await fetch('http://localhost:5000/api/user-details', {
+        const userDetailsResponse = await fetch('http://localhost:5002/api/user-details', {
           method: 'GET',
           headers: {
             Authorization: `${data.token}`,

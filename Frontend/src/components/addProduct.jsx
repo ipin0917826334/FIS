@@ -14,7 +14,7 @@ const AddProduct = ({ userDetails }) => {
 
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/all-suppliers', {
+        const response = await fetch('http://localhost:5002/api/all-suppliers', {
           method: 'GET',
           headers: {
             Authorization: token,
@@ -48,7 +48,7 @@ const AddProduct = ({ userDetails }) => {
       // formData.append('createdBy', createdBy);
       formData.append('product_image', values.product_image[0].originFileObj);
       
-      const response = await fetch('http://localhost:5000/api/add-product', {
+      const response = await fetch('http://localhost:5002/api/add-product', {
         method: 'POST',
         headers: {
           Authorization: token,
@@ -142,7 +142,7 @@ const AddProduct = ({ userDetails }) => {
         >
           <Upload
             name="product_image"
-            action="http://localhost:5000/api/add-product"
+            action="http://localhost:5002/api/add-product"
             listType="picture"
             beforeUpload={() => false} // Prevent automatic upload
             onChange={(info) => handleFileUpload(info.file)}

@@ -55,7 +55,7 @@ const ViewUser = () => {
       try {
         const token = localStorage.getItem('token');
         console.log(token)
-        const response = await fetch('http://localhost:5000/api/all-users', {
+        const response = await fetch('http://localhost:5002/api/all-users', {
           method: 'GET',
           headers: {
             Authorization: token,
@@ -151,7 +151,7 @@ const ViewUser = () => {
       }
 
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/update-user/${id}`, {
+      const response = await fetch(`http://localhost:5002/api/update-user/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -189,7 +189,7 @@ const ViewUser = () => {
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/delete-user/${id}`, {
+      const response = await fetch(`http://localhost:5002/api/delete-user/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: token,

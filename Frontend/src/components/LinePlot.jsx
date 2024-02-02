@@ -12,7 +12,7 @@ const LinePlot = () => {
   };
   useEffect(() => {
     const token = localStorage.getItem('token');
-    fetch('http://localhost:5000/api/order-quantities-by-date', {
+    fetch('http://localhost:5002/api/order-quantities-by-date', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

@@ -19,7 +19,7 @@ const ViewProduct = () => {
   const [editedValues, setEditedValues] = useState({});
   const columns = [
     { title: '#', dataIndex: 'id', key: 'id' },
-    { title: 'Image', dataIndex: 'product_image', key: 'product_image', render: (text, record) => <img src={`http://localhost:5000/uploads/${text}`} alt={record.product_name} className='rounded-md' style={{ width: '100px', height: 'auto' }} /> },
+    { title: 'Image', dataIndex: 'product_image', key: 'product_image', render: (text, record) => <img src={`http://localhost:5002/uploads/${text}`} alt={record.product_name} className='rounded-md' style={{ width: '100px', height: 'auto' }} /> },
     { title: 'Product Name', dataIndex: 'product_name', key: 'product_name', render: (text, record) => renderEditableCell(text, record, 'product_name') },
     { title: 'Stock', dataIndex: 'product_stock', key: 'product_stock', render: (text, record) => renderEditableCell(text, record, 'product_stock') },
     { title: 'Description', dataIndex: 'description', key: 'description', render: (text, record) => renderEditableCell(text, record, 'description') },
@@ -61,7 +61,7 @@ const ViewProduct = () => {
       try {
         const token = localStorage.getItem('token');
         console.log(token)
-        const response = await fetch('http://localhost:5000/api/all-products', {
+        const response = await fetch('http://localhost:5002/api/all-products', {
           method: 'GET',
           headers: {
             Authorization: token,
@@ -158,7 +158,7 @@ const ViewProduct = () => {
       }
 
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/update-product/${id}`, {
+      const response = await fetch(`http://localhost:5002/api/update-product/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -196,7 +196,7 @@ const ViewProduct = () => {
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/delete-product/${id}`, {
+      const response = await fetch(`http://localhost:5002/api/delete-product/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: token,

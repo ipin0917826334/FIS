@@ -25,7 +25,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         >
             <img
                 alt={product.product_name}
-                src={`http://localhost:5000/uploads/${product.product_image}`}
+                src={`http://localhost:5002/uploads/${product.product_image}`}
                 style={{ width: '100%', height: 200 }}
             />
             <div className='mt-5'>
@@ -99,7 +99,7 @@ const ProductList = ({ products, onAddToCart }) => {
 
 const ShoppingCart = ({ cart, onRemoveFromCart, onCheckout }) => {
     const columns = [
-        { title: 'Image', dataIndex: 'product_image', key: 'product_image', render: (text, record) => <img src={`http://localhost:5000/uploads/${text}`} alt={record.product_name} className='rounded-md' style={{ minWidth: '75px', minHeight: '75px', width: '75px', height: '75px' }} /> },
+        { title: 'Image', dataIndex: 'product_image', key: 'product_image', render: (text, record) => <img src={`http://localhost:5002/uploads/${text}`} alt={record.product_name} className='rounded-md' style={{ minWidth: '75px', minHeight: '75px', width: '75px', height: '75px' }} /> },
         { title: 'Product Name', dataIndex: 'product_name', key: 'product_name' },
         { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
         { title: 'Price', dataIndex: 'price', key: 'price' },
@@ -153,7 +153,7 @@ const Sale = () => {
         const fetchData = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:5000/api/all-products', {
+                const response = await fetch('http://localhost:5002/api/all-products', {
                     method: 'GET',
                     headers: {
                         Authorization: token,
@@ -197,7 +197,7 @@ const Sale = () => {
     const handleCheckout = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/checkout', {
+            const response = await fetch('http://localhost:5002/api/checkout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -9,7 +9,7 @@ const AddSupplier = ({ userDetails }) => {
       const createdBy = userDetails.id;
       console.log(userDetails.id)
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/add-supplier', {
+      const response = await fetch('http://localhost:5002/api/add-supplier', {
         method: 'POST',
         headers: {
           Authorization: token,

@@ -37,7 +37,7 @@ const PieChart = () => {
   const fetchStatusData = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://localhost:5000/api/order-status-counts', {
+      const response = await fetch('http://localhost:5002/api/order-status-counts', {
         headers: {
           'Authorization': token,
         },
