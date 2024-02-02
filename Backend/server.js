@@ -201,9 +201,9 @@ app.get('/api/order-quantities-by-date', authenticateToken, (req, res) => {
     }
   });
 });
-app.put('/api/update-order-item/:id', authenticateToken, async (req, res) => {
+app.post('/api/add-delivery/:id', authenticateToken, async (req, res) => {
   const id = req.params.id;
-  const { qty_received } = req.body;
+  const { deliveryQuantity } = req.body;
 
   db.beginTransaction(async err => {
     if (err) {
@@ -223,11 +223,13 @@ app.put('/api/update-order-item/:id', authenticateToken, async (req, res) => {
       const productId = orderItemResults.product_id;
       const previousQuantityReceived = orderItemResults.quantity_received;
       const quantityOrdered = orderItemResults.quantity;
-      const quantityDelivered = qty_received - previousQuantityReceived;
+      const quantityDelivered = parseInt(deliveryQuantity);
+
+      const newQuantityReceived = previousQuantityReceived + quantityDelivered;
 
       const historyQuery = 'INSERT INTO order_items_history (order_item_id, previous_quantity_received, new_quantity_received, quantity_delivered, received_date) VALUES (?, ?, ?, ?, NOW())';
       await new Promise((resolve, reject) => {
-        db.query(historyQuery, [id, previousQuantityReceived, qty_received, quantityDelivered], (err, results) => {
+        db.query(historyQuery, [id, previousQuantityReceived, newQuantityReceived, quantityDelivered], (err, results) => {
           if (err) reject(err);
           else resolve();
         });
@@ -242,9 +244,9 @@ app.put('/api/update-order-item/:id', authenticateToken, async (req, res) => {
       });
 
       let status;
-      if (qty_received >= quantityOrdered) {
+      if (newQuantityReceived >= quantityOrdered) {
         status = 'complete';
-      } else if (qty_received > 0) {
+      } else if (newQuantityReceived > 0) {
         status = 'incomplete';
       } else {
         status = 'pending';
@@ -252,7 +254,7 @@ app.put('/api/update-order-item/:id', authenticateToken, async (req, res) => {
 
       const updateOrderItemQuery = 'UPDATE order_items SET quantity_received = ?, status = ? WHERE id = ?';
       await new Promise((resolve, reject) => {
-        db.query(updateOrderItemQuery, [qty_received, status, id], (err, results) => {
+        db.query(updateOrderItemQuery, [newQuantityReceived, status, id], (err, results) => {
           if (err) reject(err);
           else resolve();
         });
@@ -276,7 +278,6 @@ app.put('/api/update-order-item/:id', authenticateToken, async (req, res) => {
     }
   });
 });
-
 
 app.get('/api/order-items-history/:itemId', authenticateToken, async (req, res) => {
   const itemId = req.params.itemId;

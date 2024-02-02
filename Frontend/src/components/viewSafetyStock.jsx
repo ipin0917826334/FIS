@@ -5,15 +5,37 @@ import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { SearchOutlined } from '@ant-design/icons';
+
 const ViewSafetyStock = () => {
   const [batches, setBatches] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editKey, setEditKey] = useState(null);
-  const [editedValues, setEditedValues] = useState({});
-  const [status, setStatus] = useState();
-  const [deliveryHistory, setDeliveryHistory] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentRecordId, setCurrentRecordId] = useState(null);
+  const [deliveryHistory, setDeliveryHistory] = useState([]);
+  const [deliveryQuantity, setDeliveryQuantity] = useState(0);
+  const [isDeliveryHistoryModalVisible, setIsDeliveryHistoryModalVisible] = useState(false);
+  const [isAddDeliveryModalVisible, setIsAddDeliveryModalVisible] = useState(false);
+
+  const [editKey, setEditKey] = useState(null);
+  const fetchOrders = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/orders-by-batch', {
+        headers: {
+          Authorization: token,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setBatches(data);
+      } else {
+        message.error('Failed to fetch orders');
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      message.error('An error occurred while fetching orders');
+    }
+  };
   const fetchDeliveryHistory = async (itemId) => {
     try {
       const token = localStorage.getItem('token');
@@ -22,7 +44,7 @@ const ViewSafetyStock = () => {
           'Authorization': token,
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setDeliveryHistory(data);
@@ -33,146 +55,6 @@ const ViewSafetyStock = () => {
       console.error('Error fetching delivery history:', error);
       message.error('An error occurred while fetching delivery history');
     }
-  };
-  
-  const handleShowDeliveryHistory = (itemId) => {
-    setCurrentRecordId(itemId);
-    fetchDeliveryHistory(itemId);
-    setIsModalVisible(true);
-  };
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/orders-by-batch', {
-          headers: {
-            Authorization: token,
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setBatches(data);
-        } else {
-          message.error('Failed to fetch orders');
-        }
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-        message.error('An error occurred while fetching orders');
-      }
-    };
-
-    fetchOrders();
-  }, []);
-
-
-
-  const updateOrderItem = async (itemId, qtyReceived) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/update-order-item/${itemId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token,
-        },
-        body: JSON.stringify({ qty_received: qtyReceived }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const data = await response.json();
-      setStatus(data.status);
-      return { qtyReceived: qtyReceived, status: data.status };
-    } catch (error) {
-      console.error('Error updating order item:', error);
-      message.error('Failed to update order item');
-      throw error;
-    }
-  };
-
-  const handleEdit = (record) => {
-    setEditKey(record.id);
-    setEditedValues({ ...editedValues, [record.id]: record.quantity_received });
-  };
-
-
-
-  const handleCancel = () => {
-    setEditKey(null);
-    setEditedValues({});
-  };
-
-  const handleSave = async (record) => {
-    const currentQtyReceived = record.quantity_received;
-    const updatedQtyReceived = editedValues[record.id];
-
-    const currentQtyNum = parseInt(currentQtyReceived, 10);
-    const updatedQtyNum = parseInt(updatedQtyReceived, 10);
-
-    if (updatedQtyNum === currentQtyNum) {
-      message.info('No changes detected. No update needed.');
-      return;
-    }
-
-    if (updatedQtyNum < currentQtyNum) {
-      message.error('Quantity received cannot decrease. Please enter a value greater than current quantity.');
-      return;
-    }
-
-    try {
-      const { qtyReceived, status } = await updateOrderItem(record.id, updatedQtyNum);
-
-      const newBatches = { ...batches };
-      for (const [batchNumber, orders] of Object.entries(newBatches)) {
-        orders.forEach(order => {
-          if (order.id === record.id) {
-            order.quantity_received = qtyReceived;
-            order.status = status;
-          }
-        });
-      }
-
-      setBatches(newBatches);
-
-      setEditKey(null);
-      setEditedValues({});
-      message.success('Order item updated successfully');
-    } catch (error) {
-      console.error('Error updating order item:', error);
-      message.error('Failed to update order item');
-    }
-  };
-
-
-
-  const filteredBatches = searchTerm
-    ? Object.entries(batches).filter(([batchNumber]) =>
-      batchNumber.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    : Object.entries(batches);
-
-  const handleSearch = (value) => {
-    setSearchTerm(value);
-  };
-  const formatDateToLocal = (dateString) => {
-    return moment(dateString).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
-  };
-  const formatDateToLocalDateOnly = (dateString) => {
-    return moment(dateString).tz('Asia/Bangkok').format('YYYY-MM-DD');
-  };
-  const handleUpdate = (record) => {
-    const qtyReceived = parseInt(record.quantity_received);
-    const qtyOrders = parseInt(record.quantity);
-
-    if (qtyReceived >= qtyOrders) {
-      record.status = 'complete';
-    } else {
-      record.status = record.status;
-    }
-    updateOrderItem(record.id, qtyReceived, record.status);
   };
   const statusStyles = {
     complete: {
@@ -197,10 +79,88 @@ const ViewSafetyStock = () => {
       textAlign: 'center',
     },
   };
-  
+
   const getStatusStyle = (status) => {
     return statusStyles[status] || {};
   };
+
+  const handleShowDeliveryHistory = (itemId) => {
+    setCurrentRecordId(itemId);
+    fetchDeliveryHistory(itemId);
+    setIsDeliveryHistoryModalVisible(true);
+  };
+
+  const handleShowAddDelivery = (itemId) => {
+    setCurrentRecordId(itemId);
+    setIsAddDeliveryModalVisible(true);
+  };
+
+  const handleDeliveryQuantityChange = (e) => {
+    setDeliveryQuantity(e.target.value);
+  };
+
+  const handleAddDelivery = async () => {
+    const orderItem = Object.entries(batches).flatMap(batch => batch[1]).find(item => item.id === currentRecordId);
+    if (!orderItem) {
+      message.error('Order item not found.');
+      return;
+    }
+
+    const deliveryQtyNumber = Number(deliveryQuantity);
+    if (Number.isNaN(deliveryQtyNumber) || deliveryQtyNumber <= 0) {
+      message.error('Please enter a valid delivery quantity.');
+      return;
+    }
+
+    if (deliveryQtyNumber > orderItem.quantity - orderItem.quantity_received) {
+      message.error('Delivery quantity cannot exceed the quantity remaining to be delivered.');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/add-delivery/${currentRecordId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+        body: JSON.stringify({ deliveryQuantity: deliveryQtyNumber }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Network response was not ok');
+      }
+
+      const data = await response.json();
+      message.success('Delivery added successfully');
+      setIsAddDeliveryModalVisible(false);
+      fetchOrders();
+    } catch (error) {
+      console.error('Error adding delivery:', error);
+      message.error(`Failed to add delivery: ${error.message || error}`);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const filteredBatches = searchTerm
+    ? Object.entries(batches).filter(([batchNumber]) =>
+      batchNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    : Object.entries(batches);
+
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+  };
+
+  const formatDateToLocal = (dateString) => {
+    return moment(dateString).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
+  };
+
   const deliveryHistoryColumns = [
     { title: 'Previous Quantity Received', dataIndex: 'previous_quantity_received', key: 'previous_quantity_received' },
     { title: 'New Quantity Received', dataIndex: 'new_quantity_received', key: 'new_quantity_received' },
@@ -261,40 +221,32 @@ const ViewSafetyStock = () => {
     },
     {
       title: 'Delivery History',
-      dataIndex: 'id', // Assuming `id` is the unique identifier for each order item
+      dataIndex: 'id',
       key: 'deliveryHistory',
       render: (text, record) => (
         <Button
           ghost
           onClick={() => handleShowDeliveryHistory(record.id)}
-          style={{color:"gray", borderColor:"gray"}}
+          style={{ color: "gray", borderColor: "gray" }}
         >
-         Deliveries
+          Deliveries
         </Button>
       ),
     },
     {
       title: 'Action',
       key: 'action',
-      render: (_, record) => {
-        const isEditing = editKey === record.id;
-        return isEditing ? (
-          <span className='flex flex-nowrap'>
-            <Button onClick={() => handleSave(record)} style={{ marginRight: 8 }}>
-              Save
-            </Button>
-            <Button onClick={() => handleCancel()}>
-              Cancel
-            </Button>
-          </span>
-        ) : (
-          <Button onClick={() => handleEdit(record)}>
-            Edit
-          </Button>
-        );
-      },
+      render: (_, record) => (
+        <Button
+          type="primary"
+          onClick={() => handleShowAddDelivery(record.id)}
+        >
+          Add Delivery
+        </Button>
+      ),
     },
   ];
+
   const exportCSV = () => {
     const allOrders = Object.values(batches).flat();
     const csvData = allOrders.map(order => ({
@@ -360,7 +312,6 @@ const ViewSafetyStock = () => {
     doc.save("orders_safety.pdf");
   };
 
-
   return (
     <>
       <h1 className="text-2xl font-bold mb-10 pt-10">Inventory policies ({filteredBatches.length})</h1>
@@ -406,24 +357,43 @@ const ViewSafetyStock = () => {
         ))}
       </div>
       <Modal
-      title="Delivery History"
-      visible={isModalVisible}
-      onOk={() => setIsModalVisible(false)}
-      onCancel={() => setIsModalVisible(false)}
-      footer={[
-       <></>
-      ]}
-    >
-      <Table
-        dataSource={deliveryHistory}
-        columns={deliveryHistoryColumns}
-        pagination={false}
-        className="min-w-full overflow-x-auto"
-      />
-    </Modal>
+        title="Delivery History"
+        visible={isDeliveryHistoryModalVisible}
+        onCancel={() => setIsDeliveryHistoryModalVisible(false)}
+        footer={[
+          <></>,
+        ]}
+      >
+        <Table
+          dataSource={deliveryHistory}
+          columns={deliveryHistoryColumns}
+          pagination={false}
+          className="min-w-full overflow-x-auto"
+        />
+      </Modal>
+
+      <Modal
+        title="Add Delivery"
+        visible={isAddDeliveryModalVisible}
+        onOk={handleAddDelivery}
+        onCancel={() => setIsAddDeliveryModalVisible(false)}
+        footer={[
+          <Button key="submit" type="primary" onClick={handleAddDelivery}>
+            Add Delivery
+          </Button>,
+        ]}
+      >
+        <Form.Item label="Delivery Quantity">
+          <Input
+            type="number"
+            value={deliveryQuantity}
+            onChange={handleDeliveryQuantityChange}
+          />
+        </Form.Item>
+      </Modal>
     </>
   );
-
 };
 
 export default ViewSafetyStock;
+
