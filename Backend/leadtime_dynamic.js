@@ -179,37 +179,6 @@ app.get('/api/products-count-by-supplier', authenticateToken, (req, res) => {
     }
   });
 });
-app.get('/api/products-notification', authenticateToken, async (req, res) => {
-  try {
-    const query = `
-      SELECT 
-        p.product_name, 
-        p.product_stock AS product_stock, 
-        MAX(oi.eoq) AS eoq
-      FROM products p
-      JOIN order_items oi ON p.id = oi.product_id
-      WHERE p.product_stock < oi.eoq
-      GROUP BY p.product_name;
-    `;
-    db.query(query, (err, results) => {
-      if (err) {
-        console.error('Error fetching product notifications:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-      } else {
-        const notifications = results.map((row) => ({
-          ...row,
-          notification: 'Low stock',
-        }));
-        res.json(notifications);
-      }
-    });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-
 app.get('/api/order-quantities-by-date', authenticateToken, (req, res) => {
   const query = `
     SELECT DATE(orders.created_at) AS date, SUM(order_items.quantity) AS quantity
@@ -243,7 +212,7 @@ app.post('/api/add-delivery/:id', authenticateToken, async (req, res) => {
     }
 
     try {
-      const orderItemQuery = 'SELECT quantity, quantity_received, lead_time, product_id FROM order_items WHERE id = ?';
+      const orderItemQuery = 'SELECT quantity, quantity_received, lead_time, product_id, order_id, received_date FROM order_items WHERE id = ?';
       const orderItemResults = await new Promise((resolve, reject) => {
         db.query(orderItemQuery, [id], (err, results) => {
           if (err) reject(err);
@@ -255,8 +224,15 @@ app.post('/api/add-delivery/:id', authenticateToken, async (req, res) => {
       const previousQuantityReceived = orderItemResults.quantity_received;
       const quantityOrdered = orderItemResults.quantity;
       const quantityDelivered = parseInt(deliveryQuantity);
-
       const newQuantityReceived = previousQuantityReceived + quantityDelivered;
+
+      const updateStockQuery = 'UPDATE products SET product_stock = product_stock + ? WHERE id = ?';
+      await new Promise((resolve, reject) => {
+        db.query(updateStockQuery, [quantityDelivered, productId], (err, results) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
 
       const historyQuery = 'INSERT INTO order_items_history (order_item_id, previous_quantity_received, new_quantity_received, quantity_delivered, received_date) VALUES (?, ?, ?, ?, NOW())';
       await new Promise((resolve, reject) => {
@@ -266,13 +242,20 @@ app.post('/api/add-delivery/:id', authenticateToken, async (req, res) => {
         });
       });
 
-      const updateStockQuery = 'UPDATE products SET product_stock = product_stock + ? WHERE id = ?';
-      await new Promise((resolve, reject) => {
-        db.query(updateStockQuery, [quantityDelivered, productId], (err, results) => {
+      const lastDeliveryQuery = 'SELECT received_date FROM order_items_history WHERE order_item_id = ? ORDER BY id DESC LIMIT 1';
+      const lastDeliveryResults = await new Promise((resolve, reject) => {
+        db.query(lastDeliveryQuery, [id], (err, results) => {
           if (err) reject(err);
-          else resolve();
+          else resolve(results[0]);
         });
       });
+
+      let newLeadTime = orderItemResults.lead_time;
+      if (lastDeliveryResults && lastDeliveryResults.received_date && orderItemResults.received_date) {
+        const lastDeliveryDate = new Date(lastDeliveryResults.received_date);
+        const expectedReceivedDate = new Date(orderItemResults.received_date);
+        newLeadTime = Math.ceil((expectedReceivedDate.getTime() - lastDeliveryDate.getTime()) / (1000 * 3600 * 24));
+      }
 
       let status;
       if (newQuantityReceived >= quantityOrdered) {
@@ -283,35 +266,27 @@ app.post('/api/add-delivery/:id', authenticateToken, async (req, res) => {
         status = 'pending';
       }
 
-      // const updateOrderItemQuery = 'UPDATE order_items SET quantity_received = ?, status = ? WHERE id = ?';
-      // await new Promise((resolve, reject) => {
-      //   db.query(updateOrderItemQuery, [newQuantityReceived, status, id], (err, results) => {
-      //     if (err) reject(err);
-      //     else resolve();
-      //   });
-      // });
-      const qtyLeadtime = orderItemResults.lead_time;
-      const stdDevDemand = Math.sqrt(orderItemResults.quantity * qtyLeadtime);
+      const stdDevDemand = Math.sqrt(quantityOrdered * newLeadTime);
       const safetyFactor = 0.67 * stdDevDemand;
-      const qtySafetyStock = isNaN(safetyFactor) ? 0 : safetyFactor; // If NaN, default to 0
-      const avgDemand = orderItemResults.quantity / 365;
-      const leadTimeDemand = avgDemand * qtyLeadtime;
+      const qtySafetyStock = isNaN(safetyFactor) ? 0 : safetyFactor;
+      const avgDemand = quantityOrdered / 365;
+      const leadTimeDemand = avgDemand * newLeadTime;
       const safetyStockDemand = avgDemand * qtySafetyStock;
       const qtyReorderPoint = leadTimeDemand + safetyStockDemand;
-      const qtyEOQ = Math.sqrt((2 * parseInt(deliveryQuantity) * 31.42) / 8.22);
+      const qtyEOQ = Math.sqrt((2 * quantityOrdered * 31.42) / 8.22); // Assuming these are the ordering and holding costs
 
       const updateOrderItemsQuery = `
-      UPDATE order_items 
-      SET quantity_received = ?, 
-          status = ?, 
-          safety_stock = ?, 
-          reorder_point = ?, 
-          eoq = ?
-      WHERE id = ?
-  `;
-
+        UPDATE order_items 
+        SET quantity_received = ?, 
+            lead_time = ?, 
+            status = ?, 
+            safety_stock = ?, 
+            reorder_point = ?, 
+            eoq = ?
+        WHERE id = ?
+      `;
       await new Promise((resolve, reject) => {
-        db.query(updateOrderItemsQuery, [newQuantityReceived, status, qtySafetyStock, qtyReorderPoint, qtyEOQ, id], (err, results) => {
+        db.query(updateOrderItemsQuery, [newQuantityReceived, newLeadTime, status, qtySafetyStock, qtyReorderPoint, qtyEOQ, id], (err, results) => {
           if (err) reject(err);
           else resolve();
         });
@@ -321,20 +296,30 @@ app.post('/api/add-delivery/:id', authenticateToken, async (req, res) => {
         if (err) {
           console.error('Error committing transaction:', err);
           db.rollback(() => {
-            res.status(500).json({ error: 'Internal Server Error' });
+            res.status(500).json({ error: 'Internal Server Error during commit' });
           });
-          return;
+        } else {
+          res.json({
+            message: 'Delivery added and order item updated successfully',
+            status: status,
+            newLeadTime: newLeadTime,
+            safetyStock: qtySafetyStock,
+            reorderPoint: qtyReorderPoint,
+            EOQ: qtyEOQ
+          });
         }
-        res.json({ message: 'Order item updated successfully', status: status });
       });
-    } catch (error) {
-      console.error('Error during update:', error);
+    }
+    catch (error) {
+      // Rollback the transaction if any operation fails
+      console.error('Error during transaction:', error);
       db.rollback(() => {
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Internal Server Error during transaction', details: error });
       });
     }
   });
 });
+
 
 app.get('/api/order-items-history/:itemId', authenticateToken, async (req, res) => {
   const itemId = req.params.itemId;
@@ -381,7 +366,6 @@ function generateBatchNumber() {
   const randomString = Math.random().toString(36).substring(2, 8).toUpperCase();
   return `BATCH-${year}${month}${day}-${randomString}`;
 }
-
 app.post('/api/submit-order', authenticateToken, (req, res) => {
   const userId = req.user.userId;
   const { orderItems } = req.body;
