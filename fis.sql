@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Feb 03, 2024 at 07:07 AM
--- Server version: 10.4.25-MariaDB
--- PHP Version: 8.1.10
+-- Host: localhost
+-- Generation Time: Feb 07, 2024 at 01:54 PM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -31,40 +31,7 @@ CREATE TABLE `batches` (
   `id` int(11) NOT NULL,
   `batch_number` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `batches`
---
-
-INSERT INTO `batches` (`id`, `batch_number`, `created_at`) VALUES
-(1, 'BATCH-20240126-5LA34W', '2024-01-25 22:15:26'),
-(2, 'BATCH-20240126-DX79SQ', '2024-01-25 22:25:30'),
-(3, 'BATCH-20240126-QD60AC', '2024-01-25 22:34:56'),
-(6, 'BATCH-20240126-0Y00GB', '2024-01-25 23:27:36'),
-(7, 'BATCH-20240126-I474PD', '2024-01-25 23:35:20'),
-(8, 'BATCH-20240126-YAOAJ8', '2024-01-26 01:14:56'),
-(9, 'BATCH-20240126-2B3YL7', '2024-01-26 01:26:56'),
-(10, 'BATCH-20240127-7JRML2', '2024-01-27 09:52:12'),
-(11, 'BATCH-20240127-HC0QLF', '2024-01-27 12:50:24'),
-(12, 'BATCH-20240130-OW8TD8', '2024-01-30 15:39:27'),
-(13, 'BATCH-20240131-7IMVLA', '2024-01-30 18:47:28'),
-(14, 'BATCH-20240131-TF06XE', '2024-01-31 15:04:13'),
-(15, 'BATCH-20240202-GOC2X2', '2024-02-01 18:43:55'),
-(16, 'BATCH-20240202-RF6SDM', '2024-02-01 18:57:57'),
-(17, 'BATCH-20240202-IYBX0T', '2024-02-01 19:42:17'),
-(18, 'BATCH-20240202-OW6QCK', '2024-02-02 04:25:46'),
-(19, 'BATCH-20240203-5II8V9', '2024-02-03 03:20:05'),
-(20, 'BATCH-20240203-1HKBAE', '2024-02-03 03:54:01'),
-(21, 'BATCH-20240203-XENCGM', '2024-02-03 03:54:40'),
-(22, 'BATCH-20240203-MOBOZN', '2024-02-03 04:20:30'),
-(23, 'BATCH-20240203-2FPQS8', '2024-02-03 04:30:18'),
-(24, 'BATCH-20240203-NLFVEW', '2024-02-03 04:47:08'),
-(25, 'BATCH-20240203-T0GUKZ', '2024-02-03 04:49:13'),
-(27, 'BATCH-20240203-T29N5P', '2024-02-03 05:52:27'),
-(28, 'BATCH-20240203-M19Y1H', '2024-02-03 05:54:01'),
-(29, 'BATCH-20240203-FNBK9Q', '2024-02-03 05:59:05'),
-(30, 'BATCH-20240203-AE1YIE', '2024-02-03 06:00:59');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -77,40 +44,7 @@ CREATE TABLE `orders` (
   `batch_id` int(11) NOT NULL,
   `ordered_by_user_id` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `orders`
---
-
-INSERT INTO `orders` (`id`, `batch_id`, `ordered_by_user_id`, `created_at`) VALUES
-(1, 1, 1, '2024-01-25 22:15:26'),
-(2, 2, 1, '2024-01-25 22:25:30'),
-(3, 3, 1, '2024-01-25 22:34:56'),
-(4, 6, 1, '2024-01-25 23:27:36'),
-(5, 7, 1, '2024-01-25 23:35:20'),
-(6, 8, 1, '2024-01-26 01:14:56'),
-(7, 9, 1, '2024-01-26 01:26:56'),
-(8, 10, 1, '2024-01-27 09:52:12'),
-(9, 11, 1, '2024-01-27 12:50:24'),
-(10, 12, 1, '2024-01-30 15:39:27'),
-(11, 13, 1, '2024-01-30 18:47:28'),
-(12, 14, 1, '2024-01-31 15:04:13'),
-(13, 15, 1, '2024-02-01 18:43:55'),
-(14, 16, 1, '2024-02-01 18:57:57'),
-(15, 17, 1, '2024-02-01 19:42:17'),
-(16, 18, 1, '2024-02-02 04:25:46'),
-(17, 19, 1, '2024-02-03 03:20:05'),
-(18, 20, 1, '2024-02-03 03:54:01'),
-(19, 21, 1, '2024-02-03 03:54:40'),
-(20, 22, 1, '2024-02-03 04:20:30'),
-(21, 23, 1, '2024-02-03 04:30:18'),
-(22, 24, 1, '2024-02-03 04:47:08'),
-(23, 25, 1, '2024-02-03 04:49:13'),
-(24, 27, 1, '2024-02-03 05:52:27'),
-(25, 28, 1, '2024-02-03 05:54:01'),
-(26, 29, 1, '2024-02-03 05:59:05'),
-(27, 30, 1, '2024-02-03 06:00:59');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -130,48 +64,7 @@ CREATE TABLE `order_items` (
   `reorder_point` int(11) DEFAULT 0,
   `status` enum('pending','incomplete','complete') DEFAULT 'pending',
   `received_date` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `order_items`
---
-
-INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `quantity_received`, `lead_time`, `eoq`, `safety_stock`, `reorder_point`, `status`, `received_date`) VALUES
-(1, 1, 1, 2, 0, 5, NULL, 0, 0, 'pending', NULL),
-(2, 1, 7, 3, 0, 5, NULL, 0, 0, 'pending', NULL),
-(3, 2, 6, 4, 0, 5, NULL, 0, 0, 'pending', NULL),
-(4, 2, 7, 5, 0, 5, NULL, 0, 0, 'pending', NULL),
-(5, 3, 4, 22, 0, 5, NULL, 0, 0, 'pending', NULL),
-(6, 3, 7, 33, 0, 5, NULL, 0, 0, 'pending', NULL),
-(7, 4, 4, 33, 30, 5, '12.37', 9, 1, 'incomplete', '2024-01-30 23:27:36'),
-(8, 4, 7, 1, 0, 5, NULL, 0, 0, 'pending', '2024-01-30 23:27:36'),
-(9, 5, 4, 3, 0, 5, NULL, 0, 0, 'pending', '2024-01-30 23:35:20'),
-(10, 6, 4, 1, 1, 5, '2.76', 1, 0, 'complete', '2024-01-31 01:14:56'),
-(11, 7, 6, 22, 0, 5, NULL, 0, 0, 'pending', '2024-01-31 01:26:56'),
-(12, 7, 4, 333, 0, 5, NULL, 0, 0, 'pending', '2024-01-31 01:26:56'),
-(13, 7, 7, 44, 0, 5, NULL, 0, 0, 'pending', '2024-01-31 01:26:56'),
-(14, 8, 1, 22, 0, 7, NULL, 0, 0, 'pending', '2024-02-03 09:52:12'),
-(15, 9, 4, 4, 1, 7, NULL, 0, 0, 'incomplete', '2024-02-03 12:50:24'),
-(16, 9, 6, 1, 1, 7, NULL, 0, 0, 'complete', '2024-02-03 12:50:24'),
-(17, 10, 1, 3, 3, 7, NULL, 0, 0, 'complete', '2024-02-06 15:39:27'),
-(18, 11, 1, 2, 2, 7, NULL, 0, 0, 'complete', '2024-02-06 18:47:28'),
-(19, 12, 4, 22, 22, 7, NULL, 0, 0, 'complete', '2024-02-07 15:04:13'),
-(20, 12, 6, 44, 30, 5, '18.34', 10, 2, 'incomplete', '2024-02-07 15:04:13'),
-(21, 13, 13, 20, 3, 7, NULL, 0, 0, 'incomplete', '2024-02-08 18:43:55'),
-(22, 14, 15, 20, 20, 7, NULL, 0, 0, 'complete', '2024-02-08 18:57:57'),
-(23, 15, 4, 20, 20, 7, NULL, 0, 0, 'complete', '2024-02-08 19:42:17'),
-(24, 16, 15, 40, 40, 7, NULL, 0, 0, 'complete', '2024-02-09 04:25:46'),
-(25, 17, 15, 100, 90, 7, '9.58', 18, 7, 'incomplete', '2024-02-10 03:20:05'),
-(26, 18, 15, 20, 0, 7, NULL, 0, 0, 'pending', '2024-02-10 03:54:01'),
-(27, 19, 15, 200, 10, 2, '8.74', 13, 8, 'incomplete', '2024-02-10 03:54:40'),
-(28, 20, 15, 20, 20, 7, '12.37', 8, 1, 'complete', '2024-02-10 04:20:30'),
-(29, 21, 15, 200, 117, 7, '39.10', 25, 18, 'incomplete', '2024-02-10 04:30:18'),
-(30, 22, 15, 100, 100, 7, '27.65', 18, 7, 'complete', '2024-02-10 04:47:08'),
-(31, 23, 15, 100, 100, 5, '27.65', 15, 5, 'complete', '2024-02-10 04:49:13'),
-(32, 24, 15, 300, 60, 7, '19.55', 31, 31, 'incomplete', '2024-02-10 05:52:27'),
-(33, 25, 15, 100, 100, 5, '27.65', 15, 5, 'complete', '2024-02-10 05:54:01'),
-(34, 26, 15, 50, 0, 7, NULL, 0, 0, 'pending', '2024-02-10 05:59:05'),
-(35, 27, 16, 5, 5, 7, '6.18', 4, 0, 'complete', '2024-02-10 06:00:59');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -186,62 +79,7 @@ CREATE TABLE `order_items_history` (
   `new_quantity_received` int(11) NOT NULL,
   `quantity_delivered` int(11) NOT NULL,
   `received_date` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `order_items_history`
---
-
-INSERT INTO `order_items_history` (`id`, `order_item_id`, `previous_quantity_received`, `new_quantity_received`, `quantity_delivered`, `received_date`) VALUES
-(1, 20, 0, 3, 3, '2024-02-01 17:37:03'),
-(2, 20, 3, 5, 2, '2024-02-01 17:37:51'),
-(3, 20, 5, 5, 0, '2024-02-01 17:41:46'),
-(4, 20, 5, 6, 1, '2024-02-01 17:45:16'),
-(5, 18, 1, 2, 1, '2024-02-01 17:53:49'),
-(6, 16, 0, 1, 1, '2024-02-01 18:10:15'),
-(7, 20, 6, 9, 3, '2024-02-01 18:17:28'),
-(8, 20, 9, 10, 1, '2024-02-01 18:22:33'),
-(9, 20, 10, 11, 1, '2024-02-01 18:25:45'),
-(10, 20, 11, 16, 5, '2024-02-01 18:26:18'),
-(11, 20, 16, 17, 1, '2024-02-01 18:40:34'),
-(12, 20, 17, 18, 1, '2024-02-01 18:41:09'),
-(13, 21, 0, 2, 2, '2024-02-01 18:44:08'),
-(14, 21, 2, 3, 1, '2024-02-01 18:44:39'),
-(15, 22, 0, 10, 10, '2024-02-01 18:58:16'),
-(16, 22, 10, 11, 1, '2024-02-01 18:58:50'),
-(17, 23, 0, 1, 1, '2024-02-01 19:42:50'),
-(18, 23, 1, 2, 1, '2024-02-01 19:43:18'),
-(19, 23, 2, 4, 2, '2024-02-02 04:09:45'),
-(20, 23, 4, 7, 3, '2024-02-02 04:11:20'),
-(21, 23, 7, 10, 3, '2024-02-02 04:12:41'),
-(22, 23, 10, 12, 2, '2024-02-02 04:13:09'),
-(23, 23, 12, 20, 8, '2024-02-02 04:16:00'),
-(24, 22, 11, 15, 4, '2024-02-02 04:22:44'),
-(25, 22, 15, 20, 5, '2024-02-02 04:23:00'),
-(26, 24, 0, 10, 10, '2024-02-02 04:26:10'),
-(27, 24, 10, 40, 30, '2024-02-02 04:26:30'),
-(28, 20, 18, 20, 2, '2024-02-02 04:36:14'),
-(37, 25, 0, 3, 3, '2024-02-03 03:33:34'),
-(38, 25, 3, 8, 5, '2024-02-03 03:35:37'),
-(39, 25, 8, 28, 20, '2024-02-03 03:35:45'),
-(40, 25, 28, 78, 50, '2024-02-03 03:36:05'),
-(41, 25, 78, 90, 12, '2024-02-03 03:40:35'),
-(42, 10, 0, 1, 1, '2024-02-03 03:42:35'),
-(43, 7, 0, 10, 10, '2024-02-03 03:43:40'),
-(44, 7, 10, 30, 20, '2024-02-03 03:44:02'),
-(45, 27, 0, 10, 10, '2024-02-03 03:55:26'),
-(46, 28, 0, 2, 2, '2024-02-03 04:20:45'),
-(47, 29, 0, 10, 10, '2024-02-03 04:30:38'),
-(48, 29, 10, 17, 7, '2024-02-03 04:31:57'),
-(49, 28, 2, 20, 18, '2024-02-03 04:32:18'),
-(50, 29, 17, 117, 100, '2024-02-03 04:38:58'),
-(51, 20, 20, 30, 10, '2024-02-03 04:41:21'),
-(52, 30, 0, 100, 100, '2024-02-03 04:47:35'),
-(53, 31, 0, 100, 100, '2024-02-03 04:49:26'),
-(54, 32, 0, 10, 10, '2024-02-03 05:53:13'),
-(55, 32, 10, 60, 50, '2024-02-03 05:53:27'),
-(56, 33, 0, 100, 100, '2024-02-03 05:55:37'),
-(57, 35, 0, 5, 5, '2024-02-03 06:01:17');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -260,22 +98,7 @@ CREATE TABLE `products` (
   `user_id` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;
-
---
--- Dumping data for table `products`
---
-
-INSERT INTO `products` (`id`, `product_name`, `product_stock`, `description`, `price`, `product_image`, `supplier_id`, `user_id`, `created_at`, `updated_at`) VALUES
-(1, 'aaa1', 0, 'aaa1', '0.00', '1703346471724-411753457_766501121973257_6668745352510327091_n.jpg', 5, 1, '2023-12-23 15:47:51', '2024-01-25 17:40:46'),
-(4, 'ssss1', 442, 'sdcvv', '0.00', '1703347623247-R.png', 5, 1, '2023-12-23 16:07:03', '2024-02-03 03:44:02'),
-(6, 'ssdsd', 114, 'aaaaa1', '0.00', '1703355294518-R.png', 5, 1, '2023-12-23 18:14:54', '2024-02-03 04:41:21'),
-(7, '123123', 65, '123123', '50.00', '1703427662239-online-voting-tablet.jpg', 6, 1, '2023-12-24 14:21:02', '2024-01-25 17:56:48'),
-(8, '123123', 181, '123123', '20.00', '1703705391359-online-voting-tablet.jpg', 6, 1, '2023-12-27 19:29:51', '2024-01-25 15:46:24'),
-(12, '213123', 22, '231', '12.00', '1706204584654-online-voting-tablet.jpg', 5, 12, '2024-01-25 17:43:04', '2024-01-25 17:48:08'),
-(13, 'orange1', 1, '1223', '20.00', '1706813018159-Pita_Limjaroenrat_.jpg', 5, 1, '2024-02-01 18:43:38', '2024-02-01 19:46:32'),
-(15, 'orange', 190, '1234', '20.00', '1706813859901-product-packshot-Orange-558x600.jpg', 5, 1, '2024-02-01 18:57:39', '2024-02-03 05:55:37'),
-(16, 'apple', 10, '123', '50.00', '1706940031910-istockphoto-184276818-612x612.jpg', 6, 1, '2024-02-03 06:00:31', '2024-02-03 06:04:37');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 
 -- --------------------------------------------------------
 
@@ -291,15 +114,7 @@ CREATE TABLE `suppliers` (
   `user_id` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;
-
---
--- Dumping data for table `suppliers`
---
-
-INSERT INTO `suppliers` (`id`, `supplier_name`, `location`, `email`, `user_id`, `created_at`, `updated_at`) VALUES
-(5, 'assa1', 'asasss', 'asdasdssssa@k.co', 1, '2023-12-23 18:14:31', '2024-01-25 17:50:11'),
-(6, '121212', '1212', 'a0917826334@gmail.com', 1, '2023-12-24 14:20:18', '2024-01-25 15:44:18');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 
 -- --------------------------------------------------------
 
@@ -315,17 +130,14 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 
 --
 -- Dumping data for table `users`
 --
 
 INSERT INTO `users` (`id`, `first_name`, `last_name`, `email`, `password`, `created_at`, `updated_at`) VALUES
-(1, 'asd', 'aasdasd', 'dddd@hotmail.com', '$2b$10$k3UoW39O0Yth0XvaIMDh2uOT9Z/qoHB5zQwPOMvY6vFqHk73Zkd4a', '2023-12-23 04:16:47', '2023-12-23 07:18:26'),
-(7, 'aa', 'asas', 'asdasdsa@k.co', '$2b$10$5f6CG1tp/aIm8tddmC4pXupyq7h2BD0v76u.PbIyTc0PoJnkfeL9e', '2023-12-23 07:22:47', '2023-12-23 07:22:47'),
-(8, 'aa1111', 'asas', 'asdasdsdda@k.co', '$2b$10$gFlanEn.1gGd4LHQBPkT1exy02sXp4H/55/Dm90BcuZst0WymYKbC', '2023-12-23 07:25:05', '2023-12-24 14:19:24'),
-(12, 'adacx', 'fff', 'cs@gmail.com', '$2b$10$Ku1fs.Kkq8fdEzNK7bWI9.m7YajzilaylrFCaczcN1jEnyQQmNblC', '2024-01-25 17:41:48', '2024-01-25 17:41:48');
+(1, 'asd', 'aasdasd', 'dddd@hotmail.com', '$2b$10$k3UoW39O0Yth0XvaIMDh2uOT9Z/qoHB5zQwPOMvY6vFqHk73Zkd4a', '2023-12-23 04:16:47', '2023-12-23 07:18:26');
 
 --
 -- Indexes for dumped tables
@@ -391,31 +203,31 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `batches`
 --
 ALTER TABLE `batches`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT for table `order_items_history`
 --
 ALTER TABLE `order_items_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `suppliers`
