@@ -88,6 +88,85 @@ app.get('/api/all-suppliers', authenticateToken, (req, res) => {
   });
 });
 
+app.delete('/api/delete-batch/:batchNumber', authenticateToken, async (req, res) => {
+  const { batchNumber } = req.params;
+
+  db.beginTransaction(async (err) => {
+      if (err) {
+          console.error('Error starting transaction:', err);
+          return res.status(500).json({ error: 'Internal Server Error' });
+      }
+
+      try {
+          const findBatchIdQuery = 'SELECT id FROM batches WHERE batch_number = ?';
+          const batchId = await new Promise((resolve, reject) => {
+              db.query(findBatchIdQuery, [batchNumber], (err, results) => {
+                  if (err) return reject(err);
+                  if (results.length > 0) {
+                      resolve(results[0].id);
+                  } else {
+                      reject(new Error('Batch not found'));
+                  }
+              });
+          });
+
+          await new Promise((resolve, reject) => {
+              const historyDeleteQuery = `
+                  DELETE order_items_history
+                  FROM order_items_history
+                  JOIN order_items ON order_items_history.order_item_id = order_items.id
+                  JOIN orders ON order_items.order_id = orders.id
+                  WHERE orders.batch_id = ?`;
+              db.query(historyDeleteQuery, [batchId], (err, results) => {
+                  if (err) return reject(err);
+                  console.log('Deleted order_items_history:', results.affectedRows);
+                  resolve(results);
+              });
+          });
+
+          await new Promise((resolve, reject) => {
+              const itemsDeleteQuery = `
+                  DELETE order_items
+                  FROM order_items
+                  JOIN orders ON order_items.order_id = orders.id
+                  WHERE orders.batch_id = ?`;
+              db.query(itemsDeleteQuery, [batchId], (err, results) => {
+                  if (err) return reject(err);
+                  resolve(results);
+              });
+          });
+
+          await new Promise((resolve, reject) => {
+              const ordersDeleteQuery = 'DELETE FROM orders WHERE batch_id = ?';
+              db.query(ordersDeleteQuery, [batchId], (err, results) => {
+                  if (err) return reject(err);
+                  resolve(results);
+              });
+          });
+
+          await new Promise((resolve, reject) => {
+              const batchDeleteQuery = 'DELETE FROM batches WHERE id = ?';
+              db.query(batchDeleteQuery, [batchId], (err, results) => {
+                  if (err) return reject(err);
+                  resolve(results);
+              });
+          });
+
+          db.commit((err) => {
+              if (err) {
+                  console.error('Error committing transaction:', err);
+                  db.rollback(() => res.status(500).json({ error: 'Internal Server Error' }));
+                  return;
+              }
+              res.json({ message: 'Batch and all associated records deleted successfully' });
+          });
+      } catch (error) {
+          console.error('Error during batch deletion:', error);
+          db.rollback(() => res.status(500).json({ error: 'Internal Server Error' }));
+      }
+  });
+});
+
 app.post('/api/register', async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
 
@@ -293,7 +372,7 @@ app.post('/api/add-delivery/:id', authenticateToken, async (req, res) => {
       const qtyLeadtime = orderItemResults.lead_time;
       const stdDevDemand = Math.sqrt(orderItemResults.quantity * qtyLeadtime);
       const safetyFactor = 0.67 * stdDevDemand;
-      const qtySafetyStock = isNaN(safetyFactor) ? 0 : safetyFactor; // If NaN, default to 0
+      const qtySafetyStock = isNaN(safetyFactor) ? 0 : safetyFactor;
       const avgDemand = orderItemResults.quantity / 365;
       const leadTimeDemand = avgDemand * qtyLeadtime;
       const safetyStockDemand = avgDemand * qtySafetyStock;

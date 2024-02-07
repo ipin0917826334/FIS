@@ -146,7 +146,22 @@ const ViewSafetyStock = () => {
   useEffect(() => {
     fetchOrders();
   }, []);
-
+  const deleteBatch = async (batchId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`http://localhost:5002/api/delete-batch/${batchId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': token,
+        },
+      });
+      message.success('Batch deleted successfully');
+      fetchOrders();
+    } catch (error) {
+      console.error('Error deleting batch:', error);
+      message.error('Failed to delete batch');
+    }
+  };
   const filteredBatches = searchTerm
     ? Object.entries(batches).filter(([batchNumber]) =>
       batchNumber.toLowerCase().includes(searchTerm.toLowerCase())
@@ -341,22 +356,36 @@ const ViewSafetyStock = () => {
         </Form.Item>
       </Form>
       <div className="container mx-auto px-4">
-        {filteredBatches.map(([batchNumber, ordersInBatch]) => (
-          <div key={batchNumber} className="mb-8 p-4 rounded-lg shadow-lg bg-white">
-            <h2 className="text-lg font-semibold border-b-2 border-gray-200 pb-2 mb-4">
-              Batch #: {batchNumber}
-            </h2>
-            <Table
-              dataSource={ordersInBatch.map((order, index) => ({
-                ...order,
-                key: index,
-              }))}
-              columns={columns}
-              pagination={false}
-              className="min-w-full overflow-x-auto"
-            />
-          </div>
-        ))}
+        {filteredBatches.map(([batchNumber, ordersInBatch]) => {
+          const isBatchComplete = ordersInBatch.every(order => order.status === 'complete');
+          return (
+            <div key={batchNumber} className="mb-8 p-4 rounded-lg shadow-lg bg-white">
+              <h2 className="text-lg font-semibold border-b-2 border-gray-200 pb-2 mb-4">
+                Batch #: {batchNumber}
+                {isBatchComplete && (
+                  <Button
+                    danger
+                    ghost
+                    style={{ marginLeft: '20px',fontSize: '16px' }}
+                    onClick={() => deleteBatch(batchNumber)}
+                    className='text-md'
+                  >
+                    Delete
+                  </Button>
+                )}
+              </h2>
+              <Table
+                dataSource={ordersInBatch.map((order, index) => ({
+                  ...order,
+                  key: index,
+                }))}
+                columns={columns}
+                pagination={false}
+                className="min-w-full overflow-x-auto"
+              />
+            </div>
+          );
+        })}
       </div>
       <Modal
         title="Delivery History"
