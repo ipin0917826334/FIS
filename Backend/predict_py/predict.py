@@ -107,9 +107,9 @@ def forecast():
 @app.route('/get-fruits', methods=['GET'])
 @cross_origin() 
 def get_fruits():
-    file_path = 'data.xlsx'  # Ensure this path is correct
+    file_path = 'data.xlsx'
     xls = pd.ExcelFile(file_path, engine='openpyxl')
-    sheet_names = xls.sheet_names  # Gets all sheet names
+    sheet_names = xls.sheet_names
     print(sheet_names)
     return jsonify(sheet_names)
 
