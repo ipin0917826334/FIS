@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Select, message } from 'antd';
-
+import { Form, Input, Button, Select, message, Modal, Spin } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
 const { Option } = Select;
-
+const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 const Predict = () => {
     const [fruits, setFruits] = useState([]);
     const [forecastResult, setForecastResult] = useState(null);
-
+    const [loading, setLoading] = useState(false)
     useEffect(() => {
         const fetchFruits = async () => {
             const response = await fetch('http://localhost:5001/get-fruits');
@@ -15,12 +15,11 @@ const Predict = () => {
         };
 
         fetchFruits();
-        console.log(fruits)
-
     }, []);
 
     const onFinish = async (values) => {
         try {
+            setLoading(true);
             const response = await fetch('http://localhost:5001/forecast', {
                 method: 'POST',
                 headers: {
@@ -33,16 +32,18 @@ const Predict = () => {
 
             if (response.ok) {
                 setForecastResult(result);
-                message.success(`Forecast result: ${result.forecasted_sales_volume || result.actual_sales_volume}`);
+                const salesVolume = result.forecasted_sales_volume !== undefined ? result.forecasted_sales_volume : result.actual_sales_volume;
+                message.success(`Forecast result: ${salesVolume >= 0 ? salesVolume : 0}`);
             } else {
                 message.error('Failed to get forecast.');
             }
         } catch (error) {
             console.error('Error during forecast:', error);
             message.error('An error occurred during forecast.');
+        } finally {
+            setLoading(false);
         }
     };
-
 
     return (
         <div>
@@ -80,28 +81,31 @@ const Predict = () => {
                     <Button type="primary" htmlType="submit">Forecast</Button>
                 </Form.Item>
             </Form>
+            <Modal
+                title="Forecast Result"
+                visible={loading}
+                footer={null}
+                closable={false}
+                centered
+            >
+                <div style={{ textAlign: 'center' }}> {/* Center align text and spinner */}
+                    <Spin indicator={antIcon} />
+                    <p style={{ marginTop: 8 }}>Loading...</p>
+                </div>
+            </Modal>
             {forecastResult && (
                 <div className="forecast-result bg-white shadow-lg rounded-lg p-6 mt-6">
                     <h2 className="text-2xl font-semibold mb-4">Forecast Result</h2>
-                    {forecastResult.forecasted_sales_volume !== undefined && (
-                        <div className="mb-3 p-3 bg-blue-100 rounded-md">
+                    {(forecastResult.forecasted_sales_volume !== undefined || forecastResult.actual_sales_volume !== undefined) && (
+                        <div className="mb-3 p-3 rounded-md" style={{ backgroundColor: forecastResult.forecasted_sales_volume !== undefined ? '#D6EAF8' : '#D5F5E3' }}>
                             <p className="text-lg">
-                                <strong className="font-medium text-blue-600">Forecasted Sales Volume:</strong>
-                                <span className="text-gray-600 ml-2">{forecastResult.forecasted_sales_volume}</span>
-                            </p>
-                        </div>
-                    )}
-                    {forecastResult.actual_sales_volume !== undefined && (
-                        <div className="mb-3 p-3 bg-green-100 rounded-md">
-                            <p className="text-lg">
-                                <strong className="font-medium text-green-600">Actual Sales Volume:</strong>
-                                <span className="text-gray-600 ml-2">{forecastResult.actual_sales_volume}</span>
+                                <strong className="font-medium" style={{ color: forecastResult.forecasted_sales_volume !== undefined ? '#3498DB' : '#58D68D' }}>{forecastResult.forecasted_sales_volume !== undefined ? 'Forecasted Sales Volume:' : 'Actual Sales Volume:'}</strong>
+                                <span className="text-gray-600 ml-2">{(forecastResult.forecasted_sales_volume !== undefined ? forecastResult.forecasted_sales_volume : forecastResult.actual_sales_volume) >= 0 ? (forecastResult.forecasted_sales_volume !== undefined ? forecastResult.forecasted_sales_volume : forecastResult.actual_sales_volume) : 0}</span>
                             </p>
                         </div>
                     )}
                 </div>
             )}
-
 
         </div>
     );

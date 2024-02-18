@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify
 import pandas as pd
 import itertools
-from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 import warnings
 from pandas.tseries.offsets import MonthBegin
 from flask_cors import cross_origin
+
 app = Flask(__name__)
+
 @app.route('/forecast', methods=['POST'])
 @cross_origin() 
 def forecast():
@@ -69,7 +71,7 @@ def forecast():
 
     for param in pdq:
         try:
-            model = ARIMA(df['Sales_Volume'], order=param)
+            model = SARIMAX(df['Sales_Volume'], order=param, seasonal_order=(1, 0, 1, 12))
             results = model.fit()
             
             # Compare AIC
@@ -78,7 +80,7 @@ def forecast():
                 best_pdq = param
                 best_model = results
         except Exception as e:
-            print(f"ARIMA{param} model failed to fit: {e}")
+            print(f"SARIMA{param} model failed to fit: {e}")
             continue
 
     warnings.resetwarnings()
@@ -100,6 +102,7 @@ def forecast():
         steps_ahead = (input_year - last_date.year) * 12 + (input_month - last_date.month)
         forecast = best_model.get_forecast(steps_ahead)
         predicted_sales_volume = forecast.predicted_mean.iloc[-1]
+        predicted_sales_volume = max(0, predicted_sales_volume)
         response = {'forecasted_sales_volume': int(predicted_sales_volume)}
 
     return jsonify(response)
