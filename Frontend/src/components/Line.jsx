@@ -86,8 +86,8 @@ const ColumnChart = () => {
   }, []);
 
   return (
-    <div className='flex justify-center w-full py-10'>
-    <div style={{ width: '100%', minHeight: '500px' }}>
+    <div className='flex justify-center w-full'>
+    <div style={{ width: '100%', height: '500px' }}>
       <Bar options={chartOptions} data={chartData} />
     </div>
   </div>

@@ -620,6 +620,29 @@ app.get('/api/products-by-supplier/:id', authenticateToken, (req, res) => {
     }
   });
 });
+app.get('/api/products-by-supplier-chart/:id', authenticateToken, (req, res) => {
+  const supplierId = req.params.id;
+
+  const query = `
+      SELECT product_name, product_stock
+      FROM products
+      WHERE supplier_id = ?
+    `;
+
+  db.query(query, [supplierId], (err, results) => {
+    if (err) {
+      console.error('Error fetching products by supplier:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      const products = results.map((result) => ({
+        product_name: result.product_name,
+        quantity: result.product_stock
+      }));
+      res.status(200).json(products);
+    }
+  });
+});
+
 
 
 

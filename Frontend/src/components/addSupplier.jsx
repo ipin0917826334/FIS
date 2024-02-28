@@ -58,14 +58,14 @@ const AddSupplier = ({ userDetails }) => {
         </Form.Item>
 
         <Form.Item
-          label="Email"
+          label="Contract"
           name="email"
-          rules={[
-            { type: 'email', message: 'The input is not a valid email!' },
-            { required: true, message: 'Please enter Supplier email!' },
-          ]}
+          // rules={[
+          //   { type: 'email', message: 'The input is not a valid email!' },
+          //   { required: true, message: 'Please enter Supplier email!' },
+          // ]}
         >
-          <Input prefix={<MailOutlined />} placeholder="Supplier Email" />
+          <Input prefix={<MailOutlined />} placeholder="Supplier Contract" />
         </Form.Item>
 
         <Form.Item >

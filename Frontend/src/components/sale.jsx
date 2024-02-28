@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, InputNumber, Space, message, Modal, Table, Typography, Badge, Input } from 'antd';
-import { DeleteOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { DeleteOutlined, ShoppingCartOutlined, PlusOutlined } from '@ant-design/icons';
 const { Meta } = Card;
 const { Text } = Typography;
 
@@ -48,15 +48,18 @@ const ProductCard = ({ product, onAddToCart }) => {
                 </div>
             ) : (
                 <div style={{ padding: 16, color: 'rgba(0, 0, 0, 0.85)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Space align="center">
-                            <InputNumber min={1} value={quantity} onChange={(value) => setQuantity(value)} />
-                            <Button type="primary" icon={<ShoppingCartOutlined />} onClick={handleAddToCart}>
-                                Add to Cart
-                            </Button>
-                        </Space>
-                    </div>
-                </div>)
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <Space align="center">
+                    <InputNumber min={1} value={quantity} onChange={(value) => setQuantity(value)} />
+                    <Button classNametype="primary" onClick={handleAddToCart}>
+                        <div className='flex mb-0'>
+                      <PlusOutlined />
+                      </div>
+                    </Button>
+                  </Space>
+                </div>
+              </div>
+              )
             }
         </Card>
     );

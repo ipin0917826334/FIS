@@ -64,7 +64,7 @@ function App() {
       // Convert EOQ to an integer
       data = data.map(product => ({
         ...product,
-        eoq: Math.round(product.eoq), // Replace with Math.floor or Math.ceil if necessary
+        eoq: Math.round(product.eoq),
       }));
       setProducts(data);
     } else {
@@ -154,7 +154,7 @@ function App() {
       getItem("View User", "11", null, "/view-user", ViewUser),
       getItem("Add User", "12", null, "/add-user", AddUser),
     ]),
-    getItem("SALES", "13", <ShoppingCartOutlined />, "/sale", Sale),
+    getItem("INVENTORY", "13", <ShoppingCartOutlined />, "/sale", Sale),
   ];
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -251,7 +251,7 @@ function App() {
                       </Menu.Item>
                     </Menu.SubMenu>
                     <Menu.Item key="13" icon={<ShoppingCartOutlined />}>
-                      <Link to="/sale">SALES</Link>
+                      <Link to="/sale">INVENTORY</Link>
                     </Menu.Item>
                   </Menu>
                 </Sider>
