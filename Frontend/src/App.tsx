@@ -52,50 +52,54 @@ function App() {
   };
 
   const fetchProducts = async () => {
-    const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:5002/api/products-notification', {
-      method: 'GET',
-      headers: {
-        Authorization: `${token}`,
-      },
-    });
-    if (response.ok) {
-      let data = await response.json();
-      // Convert EOQ to an integer
-      data = data.map(product => ({
-        ...product,
-        eoq: Math.round(product.eoq),
-      }));
-      setProducts(data);
-    } else {
-      console.error('Failed to fetch products');
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5002/api/products-notification', {
+            method: 'GET',
+            headers: {
+                Authorization: `${token}`,
+            },
+        });
+        if (response.ok) {
+            let data = await response.json();
+            console.log(data);
+            data = data.map(product => ({
+                ...product,
+                eoq: Math.round(product.eoq),
+            }));
+            setProducts(data);
+        } else {
+            console.error('Failed to fetch products');
+        }
+    } catch (error) {
+        console.error('Error:', error);
     }
-  };
-  
+};
 
-  const columns = [
+const columns = [
     {
-      title: 'Product Name',
-      dataIndex: 'product_name',
-      key: 'product_name',
+        title: 'Product Name',
+        dataIndex: 'product_name',
+        key: 'product_name',
     },
     {
-      title: 'Product Stock',
-      dataIndex: 'product_stock',
-      key: 'product_stock',
+        title: 'Product Stock',
+        dataIndex: 'product_stock',
+        key: 'product_stock',
     },
     {
-      title: 'Economic Order Quantity',
-      dataIndex: 'eoq',
-      key: 'eoq',
+        title: 'Economic Order Quantity',
+        dataIndex: 'eoq',
+        key: 'eoq',
     },
     {
-      title: 'Notification',
-      dataIndex: 'notification',
-      key: 'notification',
-      render: (text) => (text ? 'Low stock' : ''),
+        title: 'Notification',
+        dataIndex: 'notification',
+        key: 'notification',
+        render: (text) => text === 'Low stock' ? 'Low stock' : 'Out of stock',
     },
-  ];
+];
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -135,7 +139,7 @@ function App() {
   }, [navigate]);
   const items: MenuItem[] = [
     getItem("DASHBOARD", "1", <PieChartOutlined />, "/dashboard", DashBoard),
-    getItem("PREDICT", "2", <PieChartOutlined />, "/predict", Predict),
+    getItem("FORECAST", "2", <PieChartOutlined />, "/predict", Predict),
     // getItem("REPORTS", "2", <FileOutlined />, "/report", Report),
     getItem("PRODUCT", "sub1", <TagOutlined />, null, null, [
       getItem("View Product", "4", null, "/view-product", ViewProduct),
@@ -213,7 +217,7 @@ function App() {
                       <Link to="/dashboard">DASHBOARD</Link>
                     </Menu.Item>
                     <Menu.Item key="2" icon={<FileOutlined />}>
-                      <Link to="/predict">PREDICT</Link>
+                      <Link to="/predict">FORECAST</Link>
                     </Menu.Item>
                     <Menu.SubMenu key="sub1" icon={<TagOutlined />} title="PRODUCT">
                       <Menu.Item key="4">

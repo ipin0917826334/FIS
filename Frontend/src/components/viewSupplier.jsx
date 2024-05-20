@@ -17,6 +17,9 @@ const ViewSupplier = () => {
   const [dataSource, setDataSource] = useState([]);
   const [resetDataSource, setResetDataSource] = useState([]);
   const [editedValues, setEditedValues] = useState({});
+  const [filteredData, setFilteredData] = useState([]);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+
   const columns = [
     { title: '#', dataIndex: 'id', key: 'id' },
     { title: 'Supplier Name', dataIndex: 'supplier_name', key: 'supplier_name', render: (text, record) => renderEditableCell(text, record, 'supplier_name') },
@@ -83,38 +86,38 @@ const ViewSupplier = () => {
       return '';
     }
   };
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      console.log(token)
+      const response = await fetch('http://localhost:5002/api/all-suppliers', {
+        method: 'GET',
+        headers: {
+          Authorization: token,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data)
+        // Fetch product names for each supplier
+        const dataWithKeys = await Promise.all(data.map(async (item) => {
+          const productNames = await fetchProductNames(item.id);
+          return { ...item, key: String(item.id), product_names: productNames };
+        }));
+
+        setDataSource(dataWithKeys);
+        setResetDataSource(dataWithKeys);
+        setFilteredData(dataWithKeys);
+      } else {
+        console.error('Failed to fetch products');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        console.log(token)
-        const response = await fetch('http://localhost:5002/api/all-suppliers', {
-          method: 'GET',
-          headers: {
-            Authorization: token,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log(data)
-          // Fetch product names for each supplier
-          const dataWithKeys = await Promise.all(data.map(async (item) => {
-            const productNames = await fetchProductNames(item.id);
-            return { ...item, key: String(item.id), product_names: productNames };
-          }));
-
-          setDataSource(dataWithKeys);
-          setResetDataSource(dataWithKeys);
-        } else {
-          console.error('Failed to fetch products');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-      }
-    };
-
     fetchData();
   }, []);
 
@@ -158,20 +161,23 @@ const ViewSupplier = () => {
     setSearchTerm(search);
 
     const filteredData = resetDataSource.filter(
-      item =>
+      (item) =>
         item.supplier_name.toLowerCase().includes(search.toLowerCase()) ||
         item.location.toLowerCase().includes(search.toLowerCase()) ||
         item.email.toLowerCase().includes(search.toLowerCase()) ||
         item.created_by.toLowerCase().includes(search.toLowerCase())
     );
 
-    setDataSource(filteredData);
+    setFilteredData(filteredData);
+    setPagination({ ...pagination, current: 1 });
   };
 
   const handleReset = () => {
     setDataSource(resetDataSource);
+    setFilteredData(resetDataSource);
     setSearchTerm('');
   };
+  
 
   const handleEdit = (id) => {
     setEditKey(id);
@@ -201,6 +207,7 @@ const ViewSupplier = () => {
       });
 
       if (response.ok) {
+        fetchData();
         message.success('Supplier updated successfully');
         const updatedDataSource = dataSource.map((item) =>
           item.id === id ? { ...item, ...updatedData } : item
@@ -238,6 +245,7 @@ const ViewSupplier = () => {
 
       if (response.ok) {
         setDataSource((prevDataSource) => prevDataSource.filter((user) => user.id !== id));
+        fetchData();
         message.success('Supplier deleted successfully');
       } else {
         console.error('Failed to delete supplier:', response.statusText);
@@ -344,20 +352,7 @@ const ViewSupplier = () => {
 
       </Form>
 
-      <Table dataSource={dataSource} columns={columns} pagination={false} className='overflow-x-auto' />
-
-      {/* <div style={{ marginTop: '16px', textAlign: 'right' }}>
-        <span>{dataSource.length} SUPPLIER</span>
-      </div> */}
-
-      <Pagination
-        style={{ marginTop: '16px', textAlign: 'center' }}
-        total={dataSource.length}
-        pageSize={10}
-        showSizeChanger
-        showQuickJumper
-        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-      />
+      <Table dataSource={filteredData} columns={columns} pagination={pagination} onChange={(pagination) => setPagination(pagination)} className='overflow-x-auto' />
     </div>
   );
 };

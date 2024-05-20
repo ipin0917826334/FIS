@@ -17,6 +17,8 @@ const ViewProduct = () => {
   const [dataSource, setDataSource] = useState([]);
   const [resetDataSource, setResetDataSource] = useState([]);
   const [editedValues, setEditedValues] = useState({});
+  const [filteredData, setFilteredData] = useState([]);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const columns = [
     { title: '#', dataIndex: 'id', key: 'id' },
     { title: 'Image', dataIndex: 'product_image', key: 'product_image', render: (text, record) => <img src={`http://localhost:5002/uploads/${text}`} alt={record.product_name} className='rounded-md' style={{ width: '100px', height: 'auto' }} /> },
@@ -56,33 +58,33 @@ const ViewProduct = () => {
       ),
     },
   ];
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        console.log(token)
-        const response = await fetch('http://localhost:5002/api/all-products', {
-          method: 'GET',
-          headers: {
-            Authorization: token,
-          },
-        });
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      console.log(token)
+      const response = await fetch('http://localhost:5002/api/all-products', {
+        method: 'GET',
+        headers: {
+          Authorization: token,
+        },
+      });
 
-        if (response.ok) {
-          const data = await response.json();
-          // Add 'key' property to each item
-          const dataWithKeys = data.map((item) => ({ ...item, key: String(item.id) }));
+      if (response.ok) {
+        const data = await response.json();
+        // Add 'key' property to each item
+        const dataWithKeys = data.map((item) => ({ ...item, key: String(item.id) }));
 
-          setDataSource(dataWithKeys);
-          setResetDataSource(dataWithKeys);
-        } else {
-          console.error('Failed to fetch products');
-        }
-      } catch (error) {
-        console.error('Error:', error);
+        setDataSource(dataWithKeys);
+        setResetDataSource(dataWithKeys);
+        setFilteredData(dataWithKeys);
+      } else {
+        console.error('Failed to fetch products');
       }
-    };
-
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -120,26 +122,29 @@ const ViewProduct = () => {
 
 
   const [searchTerm, setSearchTerm] = useState('');
-  const onFinish = values => {
+  const onFinish = (values) => {
     const { search } = values;
     setSearchTerm(search);
-
+  
     const filteredData = resetDataSource.filter(
-      item =>
+      (item) =>
         item.product_name.toLowerCase().includes(search.toLowerCase()) ||
         item.description.toLowerCase().includes(search.toLowerCase()) ||
         item.supplier.toLowerCase().includes(search.toLowerCase()) ||
         item.created_by.toLowerCase().includes(search.toLowerCase())
     );
-
-    setDataSource(filteredData);
+  
+    setFilteredData(filteredData);
+    setPagination({ ...pagination, current: 1 });
   };
+  
 
   const handleReset = () => {
     setDataSource(resetDataSource);
+    setFilteredData(resetDataSource);
     setSearchTerm('');
   };
-
+  
   const handleEdit = (id) => {
     setEditKey(id);
     setEditedValues((prevValues) => ({
@@ -168,6 +173,7 @@ const ViewProduct = () => {
       });
 
       if (response.ok) {
+        fetchData();
         message.success('Product updated successfully');
         const updatedDataSource = dataSource.map((item) =>
           item.id === id ? { ...item, ...updatedData } : item
@@ -205,6 +211,7 @@ const ViewProduct = () => {
 
       if (response.ok) {
         setDataSource((prevDataSource) => prevDataSource.filter((user) => user.id !== id));
+        fetchData();
         message.success('Product deleted successfully');
       } else {
         console.error('Failed to delete product:', response.statusText);
@@ -266,9 +273,6 @@ const ViewProduct = () => {
     doc.save("products.pdf");
   };
 
-
-
-
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4 pt-10">List of Products ({dataSource.length})</h1>
@@ -307,21 +311,9 @@ const ViewProduct = () => {
 
       </Form>
 
-      <Table dataSource={dataSource} columns={columns} pagination={false} className='overflow-x-auto' />
+      <Table dataSource={filteredData} columns={columns} pagination={pagination} onChange={(pagination) => setPagination(pagination)} className='overflow-x-auto' />
 
-      {/* <div style={{ marginTop: '16px', textAlign: 'right' }}>
-        <span>{dataSource.length} PRODUCTS</span>
-      </div> */}
-
-      <Pagination
-        style={{ marginTop: '16px', textAlign: 'center' }}
-        total={dataSource.length}
-        pageSize={10}
-        showSizeChanger
-        showQuickJumper
-        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-      />
-    </div>
+</div>
   );
 };
 

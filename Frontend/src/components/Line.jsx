@@ -28,7 +28,7 @@ const ColumnChart = () => {
           {
             label: 'Product Count',
             data: counts,
-            backgroundColor: 'rgba(53, 162, 235, 0.5)',
+            backgroundColor: 'rgba(127, 221, 145, 0.5)',
             maxBarThickness: 40,
           },
         ],
