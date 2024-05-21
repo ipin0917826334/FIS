@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, Modal, Select, Upload, message } from 'antd';
-import { UserOutlined, UploadOutlined } from '@ant-design/icons';
+import { UploadOutlined } from '@ant-design/icons';
 
-const { Option } = Select;
 
-const AddProduct = ({ userDetails }) => {
+const AddProduct = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [supplierOptions, setSupplierOptions] = useState([]);
 
   useEffect(() => {
-    // Fetch suppliers data from the server and update the state
     const fetchSuppliers = async () => {
 
       try {
@@ -37,15 +35,12 @@ const AddProduct = ({ userDetails }) => {
   const onFinish = async (values) => {
     try {
       const token = localStorage.getItem('token');
-      // const createdBy = userDetails.first_name +" "+ userDetails.last_name;
-  
       const formData = new FormData();
       formData.append('product_name', values.product_name);
       formData.append('description', values.description);
       formData.append('price', values.price);
       formData.append('supplier_id', values.supplier_id);
       formData.append('product_stock', values.product_stock);
-      // formData.append('createdBy', createdBy);
       formData.append('product_image', values.product_image[0].originFileObj);
       
       const response = await fetch('http://localhost:5002/api/add-product', {
@@ -144,7 +139,7 @@ const AddProduct = ({ userDetails }) => {
             name="product_image"
             action="http://localhost:5002/api/add-product"
             listType="picture"
-            beforeUpload={() => false} // Prevent automatic upload
+            beforeUpload={() => false}
             onChange={(info) => handleFileUpload(info.file)}
           >
             <Button icon={<UploadOutlined />}>Click to Upload</Button>

@@ -6,10 +6,6 @@ import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 const ViewSupplier = () => {
-  // const [dataSource, setDataSource] = useState([
-  //   { key: '1', firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com', createdAt: '2023-01-01', updatedAt: '2023-01-02' },
-  //   { key: '2', firstName: 'Jane', lastName: 'Doe', email: 'jane.doe@example.com', createdAt: '2023-01-03', updatedAt: '2023-01-04' },
-  // ]);
   const formatDateToLocal = (dateString) => {
     return moment(dateString).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
   };

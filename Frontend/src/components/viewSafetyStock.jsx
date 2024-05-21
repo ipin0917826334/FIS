@@ -9,7 +9,6 @@ import { SearchOutlined } from '@ant-design/icons';
 const ViewSafetyStock = () => {
   const [batches, setBatches] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentRecordId, setCurrentRecordId] = useState(null);
   const [deliveryHistory, setDeliveryHistory] = useState([]);
   const [deliveryQuantity, setDeliveryQuantity] = useState(0);

@@ -30,12 +30,15 @@ import Predict from "./components/predict";
 
 const { Header, Sider, Content } = Layout;
 
-function App() {
+const App = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [isHide, setIsHide] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [products, setProducts] = useState([]);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 5 });
+  const [notificationFilter, setNotificationFilter] = useState(null);
+
   const navigate = useNavigate();
   const showModal = () => {
     setIsModalVisible(true);
@@ -92,6 +95,11 @@ function App() {
       dataIndex: 'notification',
       key: 'notification',
       render: (text) => text === 'Low stock' ? 'Low stock' : 'Out of stock',
+      filters: [
+        { text: 'Low stock', value: 'Low stock' },
+        { text: 'Out of stock', value: 'Out of Stock' },
+      ],
+      onFilter: (value, record) => record.notification === value,
     },
   ];
 
@@ -314,26 +322,22 @@ function App() {
                     )}
                   </Space>
                 </Header>
-                <Modal
-                  title="Product Notifications"
-                  visible={isModalVisible}
-                  onCancel={handleCancel}
-                  footer={null}
-                >
-                  <ConfigProvider
-                    theme={{
-                      token: {
-                        // Seed Token
-                        colorPrimary: '#f2f1ec',
-
-                        // Alias Token
-                        colorBgContainer: '#f2f1ec',
-                      },
-                    }}
-                  >
-                    <Table dataSource={products} columns={columns} />
-                  </ConfigProvider>
-                </Modal>
+                <Modal title="Product Notifications" visible={isModalVisible} onCancel={handleCancel} footer={null}>
+            <ConfigProvider
+              theme={{
+                token: {
+                  colorBgContainer: '#f2f1ec',
+                },
+              }}
+            >
+              <Table 
+                dataSource={notificationFilter ? products.filter(item => item.notification === notificationFilter) : products} 
+                columns={columns} 
+                pagination={pagination} 
+                onChange={(pagination) => setPagination(pagination)} 
+              />
+            </ConfigProvider>
+          </Modal>
               </ConfigProvider>
               <Content
                 className="h-screen"

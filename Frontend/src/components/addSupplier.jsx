@@ -6,7 +6,6 @@ const AddSupplier = ({ userDetails }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const onFinish = async (values) => {
     try {
-      const createdBy = userDetails.id;
       console.log(userDetails.id)
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5002/api/add-supplier', {
@@ -21,10 +20,8 @@ const AddSupplier = ({ userDetails }) => {
       if (response.ok) {
         console.log('Add Supplier successfully');
         setIsModalVisible(true);
-        // Optionally, you can redirect the user to another page or show a success message.
       } else {
         console.error('Add Supplier failed');
-        // Handle registration failure (show an error message, etc.).
       }
     } catch (error) {
       console.error('Error during add supplier:', error);

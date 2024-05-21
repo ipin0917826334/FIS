@@ -6,17 +6,16 @@ import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 const ViewUser = () => {
-  // const [dataSource, setDataSource] = useState([
-  //   { key: '1', firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com', createdAt: '2023-01-01', updatedAt: '2023-01-02' },
-  //   { key: '2', firstName: 'Jane', lastName: 'Doe', email: 'jane.doe@example.com', createdAt: '2023-01-03', updatedAt: '2023-01-04' },
-  // ]);
   const formatDateToLocal = (dateString) => {
-    return moment(dateString).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss'); // Adjust the timezone as needed
+    return moment(dateString).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
   };
   const [editKey, setEditKey] = useState(null);
   const [dataSource, setDataSource] = useState([]);
   const [resetDataSource, setResetDataSource] = useState([]);
   const [editedValues, setEditedValues] = useState({});
+  const [filteredData, setFilteredData] = useState([]);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+
   const columns = [
     { title: 'First Name', dataIndex: 'first_name', key: 'first_name', render: (text, record) => renderEditableCell(text, record, 'first_name') },
     { title: 'Last Name', dataIndex: 'last_name', key: 'last_name', render: (text, record) => renderEditableCell(text, record, 'last_name') },
@@ -50,33 +49,34 @@ const ViewUser = () => {
       ),
     },
   ];
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        console.log(token)
-        const response = await fetch('http://localhost:5002/api/all-users', {
-          method: 'GET',
-          headers: {
-            Authorization: token,
-          },
-        });
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      console.log(token)
+      const response = await fetch('http://localhost:5002/api/all-users', {
+        method: 'GET',
+        headers: {
+          Authorization: token,
+        },
+      });
 
-        if (response.ok) {
-          const data = await response.json();
-          // Add 'key' property to each item
-          const dataWithKeys = data.map((item) => ({ ...item, key: String(item.id) }));
+      if (response.ok) {
+        const data = await response.json();
+        // Add 'key' property to each item
+        const dataWithKeys = data.map((item) => ({ ...item, key: String(item.id) }));
 
-          setDataSource(dataWithKeys);
-          setResetDataSource(dataWithKeys);
-        } else {
-          console.error('Failed to fetch users');
-        }
-      } catch (error) {
-        console.error('Error:', error);
+        setDataSource(dataWithKeys);
+        setResetDataSource(dataWithKeys);
+        setFilteredData(dataWithKeys);
+      } else {
+        console.error('Failed to fetch users');
       }
-    };
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -125,11 +125,13 @@ const ViewUser = () => {
         item.email.toLowerCase().includes(search.toLowerCase())
     );
 
-    setDataSource(filteredData);
+    setFilteredData(filteredData);
+    setPagination({ ...pagination, current: 1 });
   };
 
   const handleReset = () => {
     setDataSource(resetDataSource);
+    setFilteredData(resetDataSource);
     setSearchTerm('');
   };
 
@@ -161,6 +163,7 @@ const ViewUser = () => {
       });
 
       if (response.ok) {
+        fetchData();
         message.success('User updated successfully');
         const updatedDataSource = dataSource.map((item) =>
           item.id === id ? { ...item, ...updatedData } : item
@@ -198,6 +201,7 @@ const ViewUser = () => {
 
       if (response.ok) {
         setDataSource((prevDataSource) => prevDataSource.filter((user) => user.id !== id));
+        fetchData();
         message.success('User deleted successfully');
       } else {
         console.error('Failed to delete user:', response.statusText);
@@ -289,20 +293,7 @@ const ViewUser = () => {
         </Form.Item>
       </Form>
 
-      <Table dataSource={dataSource} columns={columns} pagination={false} className='overflow-x-auto' />
-
-      {/* <div style={{ marginTop: '16px', textAlign: 'right' }}>
-        <span>{dataSource.length} USERS</span>
-      </div> */}
-
-      <Pagination
-        style={{ marginTop: '16px', textAlign: 'center' }}
-        total={dataSource.length}
-        pageSize={10}
-        showSizeChanger
-        showQuickJumper
-        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-      />
+      <Table dataSource={filteredData} columns={columns} pagination={pagination} onChange={(pagination) => setPagination(pagination)} className='overflow-x-auto' />
     </div>
   );
 };

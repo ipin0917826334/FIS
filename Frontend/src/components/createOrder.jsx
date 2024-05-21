@@ -115,9 +115,6 @@ const CreateOrder = () => {
                 <Button danger ghost style={{ border: 'none', boxShadow: 'none' }} onClick={() => handleRemoveItem(item.key)} icon={<MinusCircleOutlined />} />
 
               </Col>
-              {/* <Col span={6}>
-                <Button danger ghost onClick={() => handleRemoveItem(item.key)} icon={<MinusCircleOutlined />} />
-              </Col> */}
             </Row>
           ))}
           <Form.Item>

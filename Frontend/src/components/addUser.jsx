@@ -17,10 +17,8 @@ const AddUser = () => {
       if (response.ok) {
         console.log('User registered successfully');
         setIsModalVisible(true);
-        // Optionally, you can redirect the user to another page or show a success message.
       } else {
         console.error('User registration failed');
-        // Handle registration failure (show an error message, etc.).
       }
     } catch (error) {
       console.error('Error during user registration:', error);
