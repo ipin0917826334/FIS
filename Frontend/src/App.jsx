@@ -13,12 +13,9 @@ import {
   NotificationOutlined
 } from "@ant-design/icons";
 import "./App.css";
-import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from "react-router-dom";
+import { Route, Routes, Link, useNavigate } from "react-router-dom";
 import Login from "./components/login";
-import NavBar from "./components/NavBar";
-import SideBar from "./components/sidebar";
 import DashBoard from "./components/dashboard";
-import Report from "./components/report";
 import AddProduct from "./components/addProduct";
 import AddSupplier from "./components/addSupplier";
 import AddUser from "./components/addUser";
@@ -30,10 +27,8 @@ import ViewSupplier from "./components/viewSupplier";
 import ViewUser from "./components/viewUser";
 import Sale from "./components/Sale";
 import Predict from "./components/predict";
-import type { MenuProps } from "antd";
 
 const { Header, Sider, Content } = Layout;
-type MenuItem = Required<MenuProps>["items"][number];
 
 function App() {
   const [collapsed, setCollapsed] = useState(false);
@@ -53,74 +48,57 @@ function App() {
 
   const fetchProducts = async () => {
     try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5002/api/products-notification', {
-            method: 'GET',
-            headers: {
-                Authorization: `${token}`,
-            },
-        });
-        if (response.ok) {
-            let data = await response.json();
-            console.log(data);
-            data = data.map(product => ({
-                ...product,
-                eoq: Math.round(product.eoq),
-            }));
-            setProducts(data);
-        } else {
-            console.error('Failed to fetch products');
-        }
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5002/api/products-notification', {
+        method: 'GET',
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+      if (response.ok) {
+        let data = await response.json();
+        console.log(data);
+        data = data.map(product => ({
+          ...product,
+          eoq: Math.round(product.eoq),
+        }));
+        setProducts(data);
+      } else {
+        console.error('Failed to fetch products');
+      }
     } catch (error) {
-        console.error('Error:', error);
+      console.error('Error:', error);
     }
-};
+  };
 
-const columns = [
+  const columns = [
     {
-        title: 'Product Name',
-        dataIndex: 'product_name',
-        key: 'product_name',
+      title: 'Product Name',
+      dataIndex: 'product_name',
+      key: 'product_name',
     },
     {
-        title: 'Product Stock',
-        dataIndex: 'product_stock',
-        key: 'product_stock',
+      title: 'Product Stock',
+      dataIndex: 'product_stock',
+      key: 'product_stock',
     },
     {
-        title: 'Economic Order Quantity',
-        dataIndex: 'eoq',
-        key: 'eoq',
+      title: 'Economic Order Quantity',
+      dataIndex: 'eoq',
+      key: 'eoq',
     },
     {
-        title: 'Notification',
-        dataIndex: 'notification',
-        key: 'notification',
-        render: (text) => text === 'Low stock' ? 'Low stock' : 'Out of stock',
+      title: 'Notification',
+      dataIndex: 'notification',
+      key: 'notification',
+      render: (text) => text === 'Low stock' ? 'Low stock' : 'Out of stock',
     },
-];
+  ];
 
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  function getItem(
-    label,
-    key,
-    icon,
-    to,
-    component,
-    children?: MenuItem[]
-  ): MenuItem {
-    return {
-      key,
-      icon,
-      label,
-      to,
-      component,
-      children,
-    } as MenuItem;
-  }
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -137,29 +115,50 @@ const columns = [
       });
     }
   }, [navigate]);
-  const items: MenuItem[] = [
-    getItem("DASHBOARD", "1", <PieChartOutlined />, "/dashboard", DashBoard),
-    getItem("FORECAST", "2", <PieChartOutlined />, "/predict", Predict),
-    // getItem("REPORTS", "2", <FileOutlined />, "/report", Report),
-    getItem("PRODUCT", "sub1", <TagOutlined />, null, null, [
-      getItem("View Product", "4", null, "/view-product", ViewProduct),
-      getItem("Add Product", "5", null, "/add-product", AddProduct),
-    ]),
-    getItem("SUPPLIER", "sub2", <ShopOutlined />, null, null, [
-      getItem("View Supplier", "6", null, "/view-supplier", ViewSupplier),
-      getItem("Add Supplier", "7", null, "/add-supplier", AddSupplier),
-    ]),
-    getItem("PURCHASE ORDER", "sub3", <ShoppingCartOutlined />, null, null, [
-      getItem("Create Order", "8", null, "/create-order", CreateOrder),
-      getItem("View Safety Stock", "9", null, "/view-safety-stock", ViewSafetyStock),
-      getItem("View Orders", "10", null, "/view-orders", ViewOrders),
-    ]),
-    getItem("USER", "sub4", <UserAddOutlined />, null, null, [
-      getItem("View User", "11", null, "/view-user", ViewUser),
-      getItem("Add User", "12", null, "/add-user", AddUser),
-    ]),
-    getItem("INVENTORY", "13", <ShoppingCartOutlined />, "/sale", Sale),
+
+  const items = [
+    { key: "1", label: "DASHBOARD", icon: <PieChartOutlined />, to: "/dashboard", component: DashBoard },
+    { key: "2", label: "FORECAST", icon: <PieChartOutlined />, to: "/predict", component: Predict },
+    {
+      key: "sub1",
+      label: "PRODUCT",
+      icon: <TagOutlined />,
+      children: [
+        { key: "4", label: "View Product", to: "/view-product", component: ViewProduct },
+        { key: "5", label: "Add Product", to: "/add-product", component: AddProduct },
+      ]
+    },
+    {
+      key: "sub2",
+      label: "SUPPLIER",
+      icon: <ShopOutlined />,
+      children: [
+        { key: "6", label: "View Supplier", to: "/view-supplier", component: ViewSupplier },
+        { key: "7", label: "Add Supplier", to: "/add-supplier", component: AddSupplier },
+      ]
+    },
+    {
+      key: "sub3",
+      label: "PURCHASE ORDER",
+      icon: <ShoppingCartOutlined />,
+      children: [
+        { key: "8", label: "Create Order", to: "/create-order", component: CreateOrder },
+        { key: "9", label: "View Safety Stock", to: "/view-safety-stock", component: ViewSafetyStock },
+        { key: "10", label: "View Orders", to: "/view-orders", component: ViewOrders },
+      ]
+    },
+    {
+      key: "sub4",
+      label: "USER",
+      icon: <UserAddOutlined />,
+      children: [
+        { key: "11", label: "View User", to: "/view-user", component: ViewUser },
+        { key: "12", label: "Add User", to: "/add-user", component: AddUser },
+      ]
+    },
+    { key: "13", label: "INVENTORY", icon: <ShoppingCartOutlined />, to: "/sale", component: Sale },
   ];
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     setUserDetails(null);
